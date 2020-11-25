@@ -1,0 +1,117 @@
+#!/bin/bash
+
+PPSFILESBAK=`find . -name pps-files.cpp.bak`
+PPSFILES=`find . -name pps-files.cpp`
+
+if [ -z "$PPSFILESBAK" ]
+then
+	cp $PPSFILES $PPSFILES.bak
+else
+	echo "pps-files.cpp has backup"
+fi
+
+CLIENTMAKEBAK=`find ./client -name makefile.bak`
+CLIENTMAKE=`find ./client -name makefile`
+
+if [ -z "$CLIENTMAKEBAK" ]
+then
+	cp $CLIENTMAKE $CLIENTMAKE.bak
+else
+	echo "./client/makefile has backup"
+fi
+
+REMOVEBAK=`find ./installer/remove -name pps-client-remove.cpp.bak`
+REMOVE=`find ./installer/remove -name pps-client-remove.cpp`
+
+if [ -z "$REMOVEBAK" ]
+then
+	cp $REMOVE $REMOVE.bak
+else
+	echo "./installer/remove/pps-client-remove.cpp has backup"
+fi
+
+#ITMAKEBAK=`find ./utils/interrupt-timer -name makefile.bak`
+#ITMAKE=`find ./utils/interrupt-timer -name makefile`
+
+#if [ -z "$ITMAKEBAK" ]
+#then
+#	cp $ITMAKE $ITMAKE.bak
+#else
+#	echo "./utils/interrupt-timer/makefile has backup"
+#fi
+
+#ITMAKEDRIVERBAK=`find ./utils/interrupt-timer/driver -name Makefile.bak`
+#ITMAKEDRIVER=`find ./utils/interrupt-timer/driver -name Makefile`
+
+#if [ -z "$ITMAKEDRIVERBAK" ]
+#then
+#	cp $ITMAKEDRIVER $ITMAKEDRIVER.bak
+#else
+#	echo "./utils/interrupt-timer/driver/Makefile has backup"
+#fi
+
+PTMAKEBAK=`find ./utils/pps-timer -name makefile.bak`
+PTMAKE=`find ./utils/pps-timer -name makefile`
+
+if [ -z "$PTMAKEBAK" ]
+then
+	cp $PTMAKE $PTMAKE.bak
+else
+	echo "./utils/pps-timer/makefile has backup"
+fi
+
+PTMAKEDRIVERBAK=`find ./utils/pps-timer/driver -name Makefile.bak`
+PTMAKEDRIVER=`find ./utils/pps-timer/driver -name Makefile`
+
+if [ -z "$PTMAKEDRIVERBAK" ]
+then
+	cp $PTMAKEDRIVER $PTMAKEDRIVER.bak
+else
+	echo "./utils/pps-timer/driver/Makefile has backup"
+fi
+
+#PGMAKEBAK=`find ./utils/pulse-generator -name makefile.bak`
+#PGMAKE=`find ./utils/pulse-generator -name makefile`
+
+#if [ -z "$PGMAKEBAK" ]
+#then
+#	cp $PGMAKE $PGMAKE.bak
+#else
+#	echo "./utils/pulse-generator/makefile has backup"
+#fi
+
+#PGMAKEDRIVERBAK=`find ./utils/pulse-generator/driver -name Makefile.bak`
+#PGMAKEDRIVER=`find ./utils/pulse-generator/driver -name Makefile`
+
+#if [ -z "$PGMAKEDRIVERBAK" ]
+#then
+#	cp $PGMAKEDRIVER $PGMAKEDRIVER.bak
+#else
+#	echo "./utils/pulse-generator/driver/Makefile has backup"
+#fi
+
+NORMPARMSMAKEBAK=`find ./utils/NormalDistribParams -name makefile.bak`
+NORMPARMSMAKE=`find ./utils/NormalDistribParams -name makefile`
+
+if [ -z "$NORMPARMSMAKEBAK" ]
+then
+	cp $NORMPARMSMAKE $NORMPARMSMAKE.bak
+else
+	echo "./utils/NormalDistribParams/makefile has backup"
+fi
+
+UDPMAKEBAK=`find ./utils/udp-time-client -name makefile.bak`
+UDPMAKE=`find ./utils/udp-time-client -name makefile`
+
+if [ -z "$UDPMAKEBAK" ]
+then
+	cp $UDPMAKE $UDPMAKE.bak
+else
+	echo "./utils/udp-time-client/makefile has backup"
+fi
+
+
+
+
+
+
