@@ -123,9 +123,9 @@ Of the three components of Type 2 noise, it is sometimes possible to see the Typ
 
 Because this interrupt is generated entirely within Raspberry Pi 4, it is unaffected by the *timeline* because the measurement is made internal to the processor where time appears to be linear. Any time measurement made totally within the processor is blind to the *timeline* variations of its own clock oscillator because time is being measured relative to a time reference warped by that same *timeline*.
 
-<center>![Interrupt Delay]()</center>
+<center>![Interrupt Delay](interrupt-delay.png)</center>
 
-The interrupt delay distribution was generated with a utility designed to measure delays. The delay noise is almost entirely Type 2a noise with a standard deviation of 0.45 microsecond on this processor. The significance of interrupt delay is that it is always added to any interrupt measurement made on a GPIO pin. The maximum value for this distribution is 4.95 microseconds. This value must subtracted from the recorded clock time to get a true time for the interrupt on the local clock.
+The interrupt delay distribution was generated with a utility designed to measure delays. The delay noise is almost entirely Type 2a noise with a standard deviation of 1 microsecond on this processor. The significance of interrupt delay is that it is always added to any interrupt measurement made on a GPIO pin. The maximum value for this distribution is 4.5 microseconds. This value must subtracted from the recorded clock time to get a true time for the interrupt on the local clock.
 
 ### Latency Spikes {#latency-spikes}
 
@@ -551,13 +551,13 @@ Bins are centered on the sample x-coordinate values entered to the program. For 
 
 The program can be used to determine mean and SD for any of the sample distributions collected in testing PPS-Client including positive-only distributions which fit a [half-normal distribution](https://en.wikipedia.org/wiki/Half-normal_distribution) in the direction of increasing delay or forward time. 
 
-If the distribution is half-normal then enter only completely filled bins in the direction away from the maximum and **use double the number of actual samples** to make normal-params treat the bins as those from the right side of a normal distribution. For example, the interrupt delay distribution in [Figure 2c](#raspberry-pi-4) was evaluated for mean and standard deviation by providing the sample numbers for the sample bins from 5.5 forward like this (only 86,400 actual samples were actually collected),
+If the distribution is half-normal then enter only completely filled bins in the direction away from the maximum and **use double the number of actual samples** to make normal-params treat the bins as those from the right side of a normal distribution. For example, the interrupt delay distribution in [Figure 2c](#raspberry-pi-4) was evaluated for mean and standard deviation by providing the sample numbers for the sample bins from 5 forward like this (only 43,200 actual samples were actually collected),
 
-	$ normal-params 5.5 36885 6.0 6241 6.5 290 172800
+	$ normal-params 5 29247 6 11742 7 1846 86400
 	Relative to the best fit normal distribution:
-	maximum:  800004.946649
-	stddev: 0.452998
-	Relative fit of samples: 0.999829
+	maximum:  4.493750
+	stddev: 1.007466
+	Relative fit of samples: 0.999728
 
 Bear in mind that it's only a half-normal distribution if nearly all of the samples are in one direction or the other from the maximum.
 
