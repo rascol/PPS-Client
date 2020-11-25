@@ -133,7 +133,6 @@ A typical latency spike is evident in the PPS-Client status printout shown below
 
 <center>![Jitter Spike in Status Printout](jitter-spike.png)</center>
 
-
 Since latency spikes are easily identified by the length of delay, they are removed by suspending controller time and frequency updating when delay duration equals or exceeds the controller `NOISE_LEVEL_MIN` value which is hard coded to 4 microseconds. From the SD values of the [normally-distributed](https://en.wikipedia.org/wiki/Normal_distribution) Type 2 noise determined above, that is jitter starting at 3 to 4 standard deviations from the center of the [normally-distributed](https://en.wikipedia.org/wiki/Normal_distribution) Type 2 noise region.
 
 # The PPS-Client Controller {#the-pps-client-controller}
