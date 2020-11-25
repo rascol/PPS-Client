@@ -190,8 +190,6 @@ int main(int argc, char *argv[]){
 		printf("three points, then the standard deviation of the best fit ideal\n");
 		printf("distribution, then the relative sample fit to that ideal distribution.\n\n");
 
-//		printf("In case the distribution was treated as half-normal, also prints the\n");
-//		printf("half-normal median.\n\n");
 		return 0;
 	}
 
@@ -212,21 +210,17 @@ int main(int argc, char *argv[]){
 	}
 
 	double median, sd;
-//	double half_median;
 
 	double Y_total = 86400.0;
 	if (argc == 8){
 		sscanf(argv[7], "%lf", &Y_total);
 	}
 
-//	double relative_error = getNormalParams(Y1, x1, Y2, x2, Y3, x3, &median, &sd, Y_total);
-
-//	half_median = (sd * 0.67448975019) + median; 			// The constant was pre-calculated as sqrt(2) * inv_erf(0.5)
+	double relative_error = getNormalParams(Y1, x1, Y2, x2, Y3, x3, &median, &sd, Y_total);
 
 	printf("Relative to the best fit normal distribution:\n");
 	printf("maximum:  %lf\n", median);
 	printf("stddev: %lf\n", sd);
-//	printf("Relative fit of samples: %lf\n", 1.0 - relative_error);
-//	printf("half-normal median: %lf\n", half_median);
+	printf("Relative fit of samples: %lf\n", 1.0 - relative_error);
 	return 0;
 }

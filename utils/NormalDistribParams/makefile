@@ -17,7 +17,7 @@ normal-params: $(OBJS) $(USER_OBJS)
 
 # Other Targets
 install:
-	cp normal-params XXXX/normal-params
+	cp normal-params /XXXX/normal-params
 	
 clean:
 	-$(RM) $(OBJS) $(CPP_DEPS) $(EXECUTABLES) normal-params
