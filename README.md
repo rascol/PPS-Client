@@ -53,7 +53,7 @@ Establishing accuracy is more complicated than establishing precision. However, 
 
 Figure 3 shows the time errors in 86,400 time samples collected over 24 hours for this particular processor. The center of the distribution is at -4.42 microseconds on an uncorrected local clock. The rounded value of 4 microseconds was subsequently used as a correction value for this clock. 
 
-For a detailed description of the PPS-Client controller and accuracy calibration, please run Doxygen in `/usr/share/doc/pps-client` to generate the documentation or visit the [PPS-Client-Pages](https://rascol.github.io/Raspberry-Pi-PPS-Client) website.
+For a detailed description of the PPS-Client controller and accuracy calibration, please run Doxygen in `/usr/share/doc/pps-client` to generate the documentation or visit the [PPS-Client-Pages](https://rascol.github.io/html/) website.
 
 # Hardware Requirements
 ---

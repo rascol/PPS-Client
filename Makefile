@@ -80,23 +80,16 @@ all:
 	cp ./figures/StatusPrintoutAt10Min.png ./pkg/StatusPrintoutAt10Min.png
 	cp ./figures/StatusPrintoutOnStart.png ./pkg/StatusPrintoutOnStart.png
 	cp ./figures/InterruptTimerDistrib.png ./pkg/InterruptTimerDistrib.png
-#	cp ./figures/SingleEventTimerDistrib.png ./pkg/SingleEventTimerDistrib.png
 	cp ./figures/time.png ./pkg/time.png
 	
 	cp ./Doxyfile ./pkg/Doxyfile
 	cp ./client/pps-client.md ./pkg/client/pps-client.md
-#	cp ./client/figures/accuracy_verify.jpg ./pkg/client/figures/accuracy_verify.jpg
-#	cp ./client/figures/interrupt-delay-comparison.png ./pkg/client/figures/interrupt-delay-comparison.png
-#	cp ./client/figures/InterruptTimerDistrib.png ./pkg/client/figures/InterruptTimerDistrib.png
 	cp ./client/figures/jitter-spike.png ./pkg/client/figures/jitter-spike.png
-#	cp ./client/figures/pps-jitter-distrib.png ./pkg/client/figures/pps-jitter-distrib.png
 	cp ./client/figures/pps-offsets-stress.png ./pkg/client/figures/pps-offsets-stress.png
 	cp ./client/figures/pps-offsets-to-300.png ./pkg/client/figures/pps-offsets-to-300.png
 	cp ./client/figures/pps-offsets-to-720.png ./pkg/client/figures/pps-offsets-to-720.png
 	cp ./client/figures/StatusPrintoutAt10Min.png ./pkg/client/figures/StatusPrintoutAt10Min.png
 	cp ./client/figures/StatusPrintoutOnStart.png ./pkg/client/figures/StatusPrintoutOnStart.png
-#	cp ./client/figures/wiring.png ./pkg/client/figures/wiring.png
-#	cp ./client/figures/interrupt-delay-comparison-RPi3.png ./pkg/client/figures/interrupt-delay-comparison-RPi3.png
 	cp ./client/figures/pps-jitter-distrib-RPi3.png ./pkg/client/figures/pps-jitter-distrib-RPi3.png
 	
 	

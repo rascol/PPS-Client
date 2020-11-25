@@ -420,7 +420,6 @@ void movefiles(void){
 	doSysCommand("mv ./pkg/StatusPrintoutAt10Min.png ", docdir, "/pps-client/figures/StatusPrintoutAt10Min.png");
 	doSysCommand("mv ./pkg/RPi_with_GPS.jpg ", docdir, "/pps-client/figures/RPi_with_GPS.jpg");
 	doSysCommand("mv ./pkg/InterruptTimerDistrib.png ", docdir, "/pps-client/figures/InterruptTimerDistrib.png");
-//	doSysCommand("mv ./pkg/SingleEventTimerDistrib.png ", docdir, "/pps-client/figures/SingleEventTimerDistrib.png");
 	sysCommand("mv ./pkg/time.png /usr/share/doc/pps-client/figures/time.png");
 
 	printf("Moving Doxyfile to %s/pps-client/Doxyfile\n", docdir);
@@ -431,19 +430,13 @@ void movefiles(void){
 	doSysCommand("mv ./pkg/client/pps-client.md ", docdir, "/pps-client/client/pps-client.md");
 
 	doSysCommand("mkdir ", docdir, "/pps-client/client/figures");
-//	doSysCommand("mv ./pkg/client/figures/accuracy_verify.jpg ", docdir, "/pps-client/client/figures/accuracy_verify.jpg");
-//	doSysCommand("mv ./pkg/client/figures/interrupt-delay-comparison.png ", docdir, "/pps-client/client/figures/interrupt-delay-comparison.png");
-//	doSysCommand("mv ./pkg/client/figures/InterruptTimerDistrib.png ", docdir, "/pps-client/client/figures/InterruptTimerDistrib.png");
 	doSysCommand("mv ./pkg/client/figures/jitter-spike.png ", docdir, "/pps-client/client/figures/jitter-spike.png");
-//	doSysCommand("mv ./pkg/client/figures/pps-jitter-distrib.png ", docdir, "/pps-client/client/figures/pps-jitter-distrib.png");
 	doSysCommand("mv ./pkg/client/figures/pps-offsets-stress.png ", docdir, "/pps-client/client/figures/pps-offsets-stress.png");
 	doSysCommand("mv ./pkg/client/figures/pps-offsets-to-300.png ", docdir, "/pps-client/client/figures/pps-offsets-to-300.png");
 	doSysCommand("mv ./pkg/client/figures/pps-offsets-to-720.png ", docdir, "/pps-client/client/figures/pps-offsets-to-720.png");
 	doSysCommand("mv ./pkg/client/figures/StatusPrintoutAt10Min.png ", docdir, "/pps-client/client/figures/StatusPrintoutAt10Min.png");
 	doSysCommand("mv ./pkg/client/figures/StatusPrintoutOnStart.png ", docdir, "/pps-client/client/figures/StatusPrintoutOnStart.png");
-//	doSysCommand("mv ./pkg/client/figures/wiring.png ", docdir, "/pps-client/client/figures/wiring.png");
 	doSysCommand("mv ./pkg/client/figures/pps-jitter-distrib-RPi3.png ", docdir, "/pps-client/client/figures/pps-jitter-distrib-RPi3.png");
-//	doSysCommand("mv ./pkg/client/figures/interrupt-delay-comparison-RPi3.png ", docdir, "/pps-client/client/figures/interrupt-delay-comparison-RPi3.png");
 	sysCommand("rm -rf ./pkg");
 
 	sysCommand("rm pkg.tar.gz");
