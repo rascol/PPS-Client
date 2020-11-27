@@ -1914,8 +1914,6 @@ int assignProcessorAffinity(void){
 
 	rv = read(fd, fbuf, sz);										// Read PID file into fbuf
 
-	printf("")
-
 	close(fd);
 
 	if (rv == -1){
