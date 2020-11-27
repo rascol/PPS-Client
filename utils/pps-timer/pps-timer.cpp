@@ -43,7 +43,6 @@
 
 #define TIME_DISTRIB_LEN 51
 #define MAX_DISTRIB_LEN 251
-#define PID_FILE_SZ 10000
 
 const char *version = "pps-timer v1.0.0";
 
@@ -403,7 +402,8 @@ bool missingArg(int argc, char *argv[], int i){
  */
 int assignProcessorAffinity(void){
 	int rv;
-	char cmdstr[50];
+	char cmdstr[100];
+	struct stat stat_buf;
 
 	printf("Aasigning processor affinity:\n");
 
@@ -420,9 +420,12 @@ int assignProcessorAffinity(void){
 		return fd;
 	}
 
-	char *fbuf = new char[PID_FILE_SZ];
+	fstat(fd, &stat_buf);
+	int sz = stat_buf.st_size;
 
-	rv = read(fd, fbuf, PID_FILE_SZ-1);								// Read PID file into fbuf
+	char *fbuf = new char[sz+1];
+
+	rv = read(fd, fbuf, sz);										// Read PID file into fbuf
 
 	close(fd);
 
@@ -434,7 +437,7 @@ int assignProcessorAffinity(void){
 	char *pbuf = strtok(fbuf, "\n");								// Locate the first CR
 
 	pbuf = strtok(NULL, "\n\0");
-	memset(cmdstr, 0, 50);
+	memset(cmdstr, 0, 100);
 	strcpy(cmdstr, cmd);
 	strcat(cmdstr, fbuf);
 	strcat(cmdstr, end);
@@ -449,7 +452,7 @@ int assignProcessorAffinity(void){
 		pbuf = strtok(NULL, "\n\0");
 		if (pbuf != NULL){
 
-			memset(cmdstr, 0, 50);
+			memset(cmdstr, 0, 100);
 			strcpy(cmdstr, cmd);
 			strcat(cmdstr, pbuf);
 			strcat(cmdstr, end);

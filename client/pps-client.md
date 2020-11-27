@@ -607,7 +607,7 @@ Because there is an abundance of samples, the normal-params utility accurately r
 
 For very narrow distributions only one or two sample bins might be filled. If there are two bins, the normal-params utility can handle that too. In this case it uses the standard [center of mass](https://en.wikipedia.org/wiki/Center_of_mass) calculation for a system of (two) particles. For example,
 
-	$ normal-params 4519 800000 2301 800001
+	$ normal-params 800000 4519 800001 2301 
 	Center of mass of the pair of points is 800000.337390.
 
 Of course if only one bin is filled with fewer than one percent of the points scattering on either side then you can be sure that the distribution is entirely within the bin around that point.

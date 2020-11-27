@@ -1867,8 +1867,8 @@ int getRPiCPU(void){
 }
 
 /**
- * Attempts to segregate PPS-Client to a separate core
- * from the other processes running on the processor.
+ * Segregate PPS-Client to a separate core from
+ * the other processes running on the processor.
  *
  * Not all will be movable. Error messages are generated
  * for the ones that can't be moved but those messages
@@ -1876,9 +1876,10 @@ int getRPiCPU(void){
  */
 int assignProcessorAffinity(void){
 	int rv;
-	char cmdstr[50];
-	char cmd[20];
+	char cmdstr[100];
+	char cmd[100];
 	int bitmask = 0;
+	struct stat stat_buf;
 
 	sprintf(cmdstr, "printf 'Assigned PPS-Client to processor %d\n'", g.useCore);
 	sysCommand(cmdstr);
@@ -1890,7 +1891,7 @@ int assignProcessorAffinity(void){
 		}
 	}
 
-	memset(cmd, 0, 20);
+	memset(cmd, 0, 100);
 	sprintf(cmd,"taskset -p %d ", bitmask);
 
 	const char *end = " > /dev/null 2>&1";							// "> /dev/null 2>&1" suppresses all messages
@@ -1900,14 +1901,20 @@ int assignProcessorAffinity(void){
 		return rv;
 	}
 
+
 	int fd = open("/dev/shm/pid.txt", O_RDONLY);					// Open the PID file
 	if (fd == -1){
 		return fd;
 	}
 
-	char *fbuf = new char[CONFIG_FILE_SZ];
+	fstat(fd, &stat_buf);
+	int sz = stat_buf.st_size;
 
-	rv = read(fd, fbuf, CONFIG_FILE_SZ-1);							// Read PID file into fbuf
+	char *fbuf = new char[sz+1];
+
+	rv = read(fd, fbuf, sz);										// Read PID file into fbuf
+
+	printf("")
 
 	close(fd);
 
@@ -1919,7 +1926,7 @@ int assignProcessorAffinity(void){
 	char *pbuf = strtok(fbuf, "\n");								// Locate the first CR
 
 	pbuf = strtok(NULL, "\n\0");
-	memset(cmdstr, 0, 50);
+	memset(cmdstr, 0, 100);
 	strcpy(cmdstr, cmd);
 	strcat(cmdstr, fbuf);
 	strcat(cmdstr, end);
@@ -1934,7 +1941,7 @@ int assignProcessorAffinity(void){
 		pbuf = strtok(NULL, "\n\0");
 		if (pbuf != NULL){
 
-			memset(cmdstr, 0, 50);
+			memset(cmdstr, 0, 100);
 			strcpy(cmdstr, cmd);
 			strcat(cmdstr, pbuf);
 			strcat(cmdstr, end);
@@ -1957,7 +1964,7 @@ int assignProcessorAffinity(void){
 		}
 	}
 
-	memset(cmdstr, 0, 50);
+	memset(cmdstr, 0, 100);
 	sprintf(cmdstr,"taskset -p %d `pidof pps-client` > /dev/null 2>&1", bitmask);
 	sysCommand(cmdstr);
 

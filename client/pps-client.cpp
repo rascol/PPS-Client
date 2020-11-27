@@ -815,7 +815,7 @@ bool detectExteralSystemClockChange(struct timeval pps_t){
  * second is subtracted from the system clock whole seconds.
  *
  * If the correction is greater than a half second then
- * !1e6 - correction) is less than half a second so no change
+ * (1e6 - correction) is less than half a second so no change
  * to the system clock whole seconds is necessary.
  *
  * If the correction is near half a second, handling of the
