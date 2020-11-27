@@ -44,7 +44,7 @@
 #define TIME_DISTRIB_LEN 51
 #define MAX_DISTRIB_LEN 251
 
-const char *version = "pps-timer v1.0.0";
+const char *version = "pps-timer v1.0.1";
 
 const char *time_distrib_file = "/var/local/pps-time-distrib-forming";
 const char *last_time_distrib_file = "/var/local/pps-time-distrib";
