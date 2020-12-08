@@ -61,7 +61,7 @@
 #define PPS_WINDOW 500						//!< WaitForPPS delay loop time window in which to look for a PPS
 #define PTHREAD_STACK_REQUIRED 16384		//!< Stack space requirements for threads
 
-#define ZERO_OFFSET_RPI3 8
+#define ZERO_OFFSET_RPI3 7
 #define ZERO_OFFSET_RPI4 4
 
 #define OFFSETFIFO_LEN 80					//!< Length of \b G.correctionFifo which contains the data used to generate \b G.avgCorrection.
