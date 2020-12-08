@@ -388,7 +388,7 @@ The prominent central peak reports the number of times in 24 hours that *timelin
 
 The second important point is that the *timeline* determines time measurement *precision*. As the PPS-Client controller maintained an average straight time line at the beginning of each second, the *timeline*, which is modified by the variation in the clock oscillator frequency (and PPS variation), shifted the local time above and below a straight line by the value of the the *timeline* at every other point in the second. However at the end of each second if the the *timeline* was greater than 1 microsecond then the negative 1 microsecond correction made by the PPS-Client controller reduced the value of the the *timeline* by 1 microsecond and conversely. By this means the *timeline* was "gently encouraged" to remain within the one microsecond boundaries most of the time.  
 
-As described [above](#the-timeline), the *timeline* is a random variable best described as normally distributed with a [standard deviation](#test-results) of 0.5 microsecond for RPi4 and 0.75 microsecond for RPi3. Because the *timeline* is forced to remain near zero relative to the PPS each time it occurs, that statistical description is also the *precision*.
+As described [above](#the-timeline), the *timeline* is a random variable best described as normally distributed with a [standard deviation](#test-results) of 0.6 microsecond for RPi4 and 0.9 microsecond for RPi3. Because the *timeline* is forced to remain near zero relative to the PPS each time it occurs, that statistical description is also the *precision*.
 
 
 However the *timeline* has no knowledge of the whole second time of day. To the extent *that* is properly determined then the *precision* is also the *accuracy* of the time.

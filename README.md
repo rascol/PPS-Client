@@ -23,7 +23,7 @@ The PPS-Client daemon is a fast, microsecond accuracy Pulse-Per-Second system cl
 
 # Summary
 ---
-The PPS-Client daemon provides the time keeping precision of a *timeline* with a standard deviation of 0.5 microsecond and a typical time keeping accuracy of 2 microseconds on Linux processors with operating systems that provide the Linux pps-gpio or pps-ldisc driver. Precision and accuracy at this level is possible because the PPS-Client controller uses design techniques not previously used to discipline an application processor clock to a PPS signal.
+The PPS-Client daemon provides the time keeping precision of a *timeline* with a standard deviation of 0.6 to 0.9 microsecond on Raspberry Pi and a typical time keeping accuracy of 2 microseconds on Linux processors with operating systems that provide the Linux pps-gpio or pps-ldisc driver. Precision and accuracy at this level is possible because the PPS-Client controller uses design techniques not previously used to discipline an application processor clock to a PPS signal.
 
 The daemon can provide a continuous second by second display of its current timekeeping parameters so that its ongoing timekeeping performance can be inspected at any time (see the figures in [Running PPS-Client](#running-pps-client)). This is a convenient way of tracking the performance of a system claiming to discipline a clock to a PPS signal.
 
