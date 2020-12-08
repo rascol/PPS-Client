@@ -40,7 +40,7 @@
 #include <linux/poll.h>
 #include <linux/wait.h>
 #include <linux/param.h>
-#include <asm/gpio.h>
+#include <linux/gpio.h>
 #include <asm/atomic.h>
 #include <asm/io.h>
 #include <../kernel/time/timekeeping.h>
