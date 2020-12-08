@@ -35,6 +35,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <sys/timex.h>
+#include <sys/time.h>
 #include <math.h>
 #include <sys/types.h>
 #include <errno.h>

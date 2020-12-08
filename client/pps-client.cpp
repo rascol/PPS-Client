@@ -48,9 +48,9 @@ extern int adjtimex (struct timex *timex);
 /**
  * System call
  */
-extern int gettimeofday(struct timeval *tv, struct timezone *tz);
+//extern int gettimeofday(struct timeval *tv, struct timezone *tz);
 
-const char *version = "2.0.1";							//!< Program v2.0.0 updated on 9 Jul 2020
+const char *version = "2.0.2";							//!< Program v2.0.0 updated on 9 Jul 2020
 
 struct G g;												//!< Declares the global variables defined in pps-client.h.
 

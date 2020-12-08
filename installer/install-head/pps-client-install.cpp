@@ -326,7 +326,7 @@ int sysCommand(const char *cmd){
 }
 
 int doSysCommand(const char *arg1, char *arg2, const char *arg3){
-	char cmdStr[120];
+	char cmdStr[200];
 
 	strcpy(cmdStr, arg1);
 	strcat(cmdStr, arg2);
@@ -348,7 +348,7 @@ int doSysCommand(const char *arg1, char *arg2, const char *arg3){
 }
 
 void movefiles(void){
-	char cmdStr[120];
+	char cmdStr[200];
 
 	sysCommand("tar xzvf pkg.tar.gz");
 

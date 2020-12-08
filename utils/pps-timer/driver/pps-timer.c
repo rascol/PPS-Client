@@ -139,12 +139,14 @@ int generate_probe(int *timeData, int count)
 	struct timespec64 ts;
 	u64 time_ns1, time_ns2, endTime;
 	u64 delta;
-	int64_t currentTime, time1;
+	int64_t currentTime;
 	int riseTime = timeData[2];
-	int i = 0;
 
 	timer_buffer[1] = 0;
 	timer_buffer[2] = 0;
+	timer_buffer[3] = 0;
+	timer_buffer[4] = 0;
+
 	time_ns1 = 0;
 	time_ns2 = 0;
 
@@ -155,14 +157,10 @@ int generate_probe(int *timeData, int count)
 
 	local_bh_disable();							// Temporarily disable soft irqs and tasklets.
 												// These definitely disturb the timing.
-	do {										// Spin until time of day approaches riseTime
-		ktime_get_real_ts64(&ts);
-		time1 = ts.tv_nsec;
-	} while (time1 < (riseTime - 1000));
-
+	ktime_get_real_ts64(&ts);
 	currentTime = ts.tv_nsec;
 
-	if (currentTime > riseTime){ 				// Must be at least 15 microseconds early
+	if (currentTime > riseTime - 10000){ 		// Must be at least 25 microseconds early
 		printk(KERN_INFO "pps-timer: Requested riseTime is not later than currentTime\n");
 		printk(KERN_INFO "pps-timer: seq_num: %d  time: %lld:%ld\n", timeData[3], ts.tv_sec, ts.tv_nsec);
 
@@ -173,7 +171,11 @@ int generate_probe(int *timeData, int count)
 	}
 
 	time_ns2 = ktime_get_real_fast_ns();
-	endTime = time_ns2 + 25000;
+	endTime = time_ns2 + 300000;					// Prevents endless looping
+	ts = ns_to_timespec64(time_ns2);
+
+	timer_buffer[3] = (int)ts.tv_sec;				// Time at starting the timing loop
+	timer_buffer[4] = (int)ts.tv_nsec;
 
 	do {
 		time_ns1 = ktime_get_real_fast_ns();
@@ -186,8 +188,6 @@ int generate_probe(int *timeData, int count)
 			timer_buffer[1] = (int)ts.tv_sec;
 			timer_buffer[2] = (int)ts.tv_nsec;
 
-			printk(KERN_INFO "pps-timer: returning at i: %d  delta: %lld\n", i, delta);
-
 			local_bh_enable();
 			wait_event_hrtimeout(timer_queue, wq_var == 1, 1000000);	// Sleep for at least 1 msec only using the hrtimeout.
 																		// This is to allow pps-client to process the PPS interrupt
@@ -196,10 +196,7 @@ int generate_probe(int *timeData, int count)
 
 		time_ns2 = time_ns1;
 
-		i += 1;
-
-	} while (time_ns2 < endTime && i < 200);
-
+	} while (time_ns2 < endTime);
 
 	ts = ns_to_timespec64(time_ns2);
 	printk(KERN_INFO "pps-timer: seq_num: %d  time: %lld:%ld\n", timeData[3], ts.tv_sec, ts.tv_nsec);

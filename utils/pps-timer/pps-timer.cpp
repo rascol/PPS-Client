@@ -552,7 +552,7 @@ int main(int argc, char *argv[]){
 
 	int pulseStart1 = 0;
 	int writeData[4];
-	int readData[3];
+	int readData[5];
 	const char *deviceName = "/dev/pps-timer";
 	struct timespec ts1, ts2;
 	struct sched_param param;
@@ -560,7 +560,10 @@ int main(int argc, char *argv[]){
 	int fd;
 	int rv;
 	int pps_time = 0;
+//	int pps_timing_start = 0;
+
 	double f_pps_time;
+//	double f_pps_timing_start;
 
 	memset(&g, 0, sizeof(struct interruptTimerGlobalVars));
 
@@ -578,7 +581,6 @@ int main(int argc, char *argv[]){
 					goto info;
 				}
 				sscanf(argv[i+1], "%lf", &g.probeTime);
-				g.probeTime -= 15.0;
 			}
 			if (strcmp(argv[i], "-dr") == 0){
 				if (missingArg(argc, argv, i)){
@@ -641,8 +643,6 @@ start:
 
 	assignProcessorAffinity();
 
-
-
 	int latency = 250000;								// nanoseconds
 
 	double probeTime = 1000.0 * g.probeTime;			// nanoseconds
@@ -699,7 +699,7 @@ start:
 		tryCount = 0;
 
 		readData[0] = 0;
-		rv = read(fd, readData, 3 * sizeof(int));
+		rv = read(fd, readData, 5 * sizeof(int));
 		if (rv == -1){
 			printf("Read from %s failed.\n", deviceName);
 			break;
@@ -707,14 +707,16 @@ start:
 
 		if (rv > 0){
 			pps_time = readData[2];
+//			pps_timing_start = readData[4];
 
 			if (pps_time > 900000000){
 				pps_time = -(1000000000 - pps_time);
 			}
 
 			f_pps_time = (double)pps_time * 0.001;
+//			f_pps_timing_start = (double)pps_timing_start * 0.001;
 
-			if (jitterIsAcceptable() == true){
+			if ((f_pps_time > -15.0) && jitterIsAcceptable() == true){
 				buildDistrib((int)round((double)g.samplesPerUsec * f_pps_time), g.timeLowestVal, g.timeDistrib, g.timeDistribLen, &g.timeCount);
 
 				clock_gettime(CLOCK_REALTIME, &ts1);
@@ -722,6 +724,7 @@ start:
 				strftime(timeStr, 100, timefmt, localtime((const time_t*)(&(ts1.tv_sec))));
 
 				fprintf(stdout, "%s %d  pps_time: %5.2lf usecs\n", timeStr, g.seq_num, f_pps_time);
+//				fprintf(stdout, "%s %d  pps_timing_start: %5.2lf  pps_time: %5.2lf usecs\n", timeStr, g.seq_num, f_pps_timing_start, f_pps_time);
 				fflush(stdout);
 			}
 			else {

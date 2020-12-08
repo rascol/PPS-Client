@@ -1,4 +1,4 @@
-# PPS Client Documentation (rev. a) {#mainpage}
+# PPS Client Documentation (rev. b) {#mainpage}
 
 - [Uses](#uses)
 - [PPS-Client High Accuracy Timekeeping](#pps-client-high-accuracy-timekeeping)
@@ -56,11 +56,11 @@ The only disadvantage of hard limiting is that it reduces the amount of time cor
 
 ## Noise and Latency{#noise-and-latency}
 
-While the average accuracy of the PPS signal is on the order of tens of nanoseconds and the jitter standard deviation in the PPS signal is on the order of a fraction of a microsecond, application processors are not particularly suited to maintaining the system time to that order of accuracy. The difficulty is, of course, that typically, an application processor has dozens to hundreds of applications all running at the same time and all competing for processor time. As a result, even for real-time applications, unavoidable delays occur both in responding to an interrupt and also in timestamping it after it has been received. These delays set the limit to processor time accuracy.
+While the average accuracy of the PPS signal is on the order of tens of nanoseconds and the jitter standard deviation in the PPS signal is a fraction of a microsecond, application processors are not particularly suited to maintaining the system time to that order of accuracy. The difficulty is, of course, that typically, an application processor has dozens to hundreds of applications all running at the same time and all competing for processor time. As a result, even for real-time applications, unavoidable delays occur both in responding to an interrupt and also in timestamping it after it has been received. These delays set the limit to processor time accuracy.
 
 Nevertheless, it is perhaps remarkable that it is possible to achieve microsecond accuracy by characterizing the components of time error and finding methods of reducing or compensating for most of these components. For that reason, this section will identify the contributing components of time error: PPS latency and the latency variation described above as jitter.
 
-Time error, defined as the measurable error between PPS time and the time reported on the local clock, is the sum of a static constant component, the **intrinsic PPS interrupt delay**, and three identifiable noise components. The intrinsic PPS delay is defined as the minimum time difference between the assertion of the PPS signal as an interrupt and the timestamp record of it provided by the PPS driver. Intrinsic PPS Delay can be [measured directly in software](#measuring-zerooffset). For that reason it can be measured on any processor running Linux, even those without direct GPIO access.
+Time error, defined as the measurable error between PPS time and the time reported on the local clock, is the sum of a static constant component, the **intrinsic PPS interrupt delay**, and three identifiable noise components. The intrinsic PPS delay is defined as the time difference, exclusive of noise, between the assertion of the PPS signal as an interrupt and the timestamp record of it provided by the PPS driver. Intrinsic PPS Delay can be [measured directly in software](#measuring-zerooffset). For that reason it can be measured on any processor running Linux, even those without direct GPIO access.
 
 The jitter components of time error are
 
@@ -81,23 +81,21 @@ c. normally distributed jitter in the PPS signal source.</BLOCKQUOTE>
     
 Type 3: Sporadically occurring spikes of longer duration latency occurring when the scheduler is unable to immediately provide the requested time slot to PPS-Client.
 
-Type 1a and Type 2a noise can both be eliminated or largely removed by changing the application environment in which pps-client is running. However, this is not always practical or desirable. More about this [at the end of this document](#test-notes). Also notice that Type 1a noise and Type 2a noise can only make the PPS delay longer than the intrinsic PPS interrupt delay and not shorter. This characteristic can help to identify these components.
+The intrinsic PPS interrupt delay rounded to the nearest microsecond is the `G.zeroOffset` correction value that is incorporated into the PPS-Client code. The intrinsic PPS interrupt delay and the Type 1a variable delay component jointly determine the moment to moment zeroOffset. Testing has revealed that the Type 1a noise is [usually small](#feedback-controller) in most operating environments.
 
-Because Type 1b noise is slowly varying it is removed by the PPS-Client control loop.
+Type 3, described as [latency spikes](#latency-spikes), is removed by excluding these spikes from the controller feedback loop.
 
-The intrinsic PPS interrupt delay and the Type 1a variable delay component jointly determine the moment to moment zeroOffset. Testing has revealed that the Type 1a noise is [usually small](#feedback-controller) in most operating environments.
+Type 1a and Type 2a noise can both be reduced by changing the application environment in which pps-client is running. However, this is not always practical or desirable. More about this [at the end of this document](#test-notes). Also notice that Type 1a noise and Type 2a noise can only make the PPS delay longer than the intrinsic PPS interrupt delay and not shorter. This characteristic helps to identify these components.
 
-The intrinsic PPS interrupt delay rounded to the nearest microsecond is the `G.zeroOffset` correction value that is incorporated into the PPS-Client code. 
-
-Type 3, described as [latency spikes](#latency-spikes), is removed by excluding it from the controller feedback loop.
+Type 1b noise has components in all time periods. For time periods longer than 1 minute, it is removed by the minute-to-minute corrections made by the integral control feedback of the controller. For time in the range 1 second to 1 minute it is removed by the second-to-second corrections made by the proportional control feedback of the PPS-Client controller. 
 
 ### The Timeline{#the-timeline}
 
-On the other hand, **the sum of Type 2b and Type 2c noise is an irreducible noise component of time error**. In fact these components characterize a continuous random variable that we will call the *timeline*. The *timeline* is the reported time at each instant on the local system clock. It is useful to think of the *timeline* as the kind of line that would result if one were to draw a straight line between two widely separated points on a white board. Unless the hand that drew the line was particularly skillful, that line might not be very straight. But the line *would* connect the two points. The two points that the *timeline* connects are the beginning and end of each second on the local clock. 
+However, in a time interval shorter than 1 second, **Type 2b and 2c noise is an irreducible noise component of time error**. In fact these component characterizes a continuous random variable that we will call the *timeline*. The *timeline* is the reported time at each instant on the local system clock. It is useful to think of the *timeline* as the kind of line that would result if one were to draw a straight line between two widely separated points on a white board. Unless the hand that drew the line was particularly skillful, that line would not be very straight. The two points that the *timeline* connects are the beginning and end of each second on the local clock. 
 
-But in between those two points the *timeline* is ruled by Type 2b and 2c noise which is a slowly changing quantity over the interval of a second. The *timeline* cannot be corrected because it is a random value in each second that is observed only after it has occurred and the value in the next second will also be random and, consequently, cannot be predicted. That is what makes it necessary to characterize the *timeline* or the time precision of the local clock, as a statistical quantity. PPS-Client times and synchronizes the *timeline* only at the beginning of each second and PPS-Client synchronizes the *timeline* to the time of occurrence of the PPS only as reported on the local clock. 
+But in between those two points the *timeline* is ruled by Type 2b noise which varies the time within an interval of a second. The *timeline* cannot be corrected because it is a random value in each second that is observed only after it has occurred and the value in the next second will also be random and, consequently, cannot be predicted. That is what makes it necessary to characterize the *timeline*, or the time precision of the local clock, as a statistical quantity. PPS-Client times and synchronizes the *timeline* only at the beginning of each second and only to the PPS, disregarding the wall clock time.
 
-However, the *timeline* *can* be characterized by statistical measurements and those measurements then define the accuracy of second-to-second clock synchronization to the PPS. For example, for ten RPi4 processors that were [tested](#test-results), the standard deviation of the *timeline* was very close to 0.5 microsecond SD and the *timeline* was found to be [normally distributed](https://en.wikipedia.org/wiki/Normal_distribution). This can be interpreted in various ways such as: With probability 0.68, a time measured on the local clock was within 0.5 microsecond of the PPS. Or, using the [three sigma rule](https://en.wikipedia.org/wiki/Normal_distribution), that the local clock error to the PPS was more than +/- 2.0 microseconds only about once in 15,789 timings.
+Although it is randam, the *timeline* *can* be characterized by statistical measurements and those measurements then define the accuracy of time synchronization to the PPS. For example, for ten RPi4 processors that were [tested](#test-results), the standard deviation of the *timeline* was very close to 0.6 microsecond SD and the *timeline* was found to be [normally distributed](https://en.wikipedia.org/wiki/Normal_distribution). This can be interpreted in various ways. Such as, with probability 0.68, a time measured on the local clock was within 0.6 microsecond of the PPS, or say, using the [three sigma rule](https://en.wikipedia.org/wiki/Normal_distribution), the local clock error to the PPS was more than +/- 2.4 microseconds only about once in 15,789 timings.
 
 To see how time errors present in practice, typical measured performance of Raspberry Pi processors is shown next.
 
@@ -113,19 +111,17 @@ Figure 2a is data that was captured from the test unit over 24 hours to the file
 Figure 2a shows a delay peak at zero (relative to the `G.zeroOffset` value) followed by infrequent sporadic Type 3 latency spikes in the log plot. The nearly [normal](https://en.wikipedia.org/wiki/Normal_distribution) distribution of the *timeline* is also quite evident. This distribution is a combination of all three components of Type 2 noise..
 
 ### Raspberry Pi 4 {#raspberry-pi-4}
-Raspberry Pi 4 PPS Type 2 noise is shown in Figure 2b for an RPi 4 unit showing typical characteristics from a batch of ten test units.
+Raspberry Pi 4 PPS Type 2 noise, captured in the same way as above, is shown in Figure 2b for an RPi 4 unit showing typical characteristics from a batch of ten test units.
 
 <center>![Raspberry Pi 4 Jitter Distribution](pps-jitter-distrib-RPi4.png)</center>
 
-Figure 2b is PPS jitter that was captured from the test unit over 24 hours to the file <b>/var/local/pps-jitter-distrib</b> by setting `jitter-distrib=enable` in <b>/etc/pps-client.conf</b> and is typical data that is easily generated on any RPi 4.
+Of the three components of Type 2 noise, it is possible to see Type 2a noise separately from the others in a distribution of interrupt delay <I>d<sub>int</sub></I> as in Figure 2c (from RPi4#7 below).
 
-Of the three components of Type 2 noise, it is sometimes possible to see the Type 2a noise separately from the others in a plot of interrupt delay <I>d<sub>int</sub></I> as in Figure 2c (from RPi4#7 below). Unfortunately, there is a still a small amount of jitter in the direction of earlier time introduced by the measurement which makes it impossible to tell whether the bin at 4.5 microseconds is mostly noise or a part of the Type 2a distribution. But ignoring that, this is a good illustration of Type 2a noise.
-
-Because this interrupt is generated entirely within Raspberry Pi 4, it is unaffected by the *timeline* because the measurement is made internal to the processor where time appears to be linear. Any time measurement made totally within the processor is blind to the *timeline* variations of its own clock oscillator because time is being measured relative to a time reference warped by that same *timeline*.
+Because this interrupt was generated entirely within Raspberry Pi 4, it is unaffected by the *timeline* because the measurement is made internal to the processor where time appears to be linear. Any time measurement made totally within the processor is blind to the *timeline* variations of its own clock oscillator because time is being measured relative to a time reference warped by that same *timeline*.
 
 <center>![Interrupt Delay](interrupt-delay.png)</center>
 
-The interrupt delay distribution was generated with a utility designed to measure delays. The delay noise is almost entirely Type 2a noise with a standard deviation of 1 microsecond on this processor. The significance of interrupt delay is that it is always added to any interrupt measurement made on a GPIO pin. The maximum value for this distribution is 4.5 microseconds. This value must subtracted from the recorded clock time to get a true time for the interrupt on the local clock.
+This interrupt delay distribution was generated with a utility designed to measure delays. The delay noise is almost entirely Type 2a noise with a standard deviation of 1 microsecond on this processor. The maximum value of this distribution occurs at 4.5 microseconds. As evident in Figure 2c, the Type 2a noise adds to that value.  The maximum value of 4.5 microseconds would be subtracted from the recorded clock time to get a true minimum time for the interrupt in this example.
 
 ### Latency Spikes {#latency-spikes}
 
@@ -409,25 +405,25 @@ The next section describes the method used to determine `G.zeroOffset`.
 
 The goal in the following sections is to measure `G.zeroOffset` to the nearest microsecond. Consequently, components of and corrections to the value of `G.zeroOffset` are timed to tenths of a microsecond. The value of `G.zeroOffset` that we are seeking is exclusive of any jitter that the system will add to the value. For that reason, long averages of parameters are made specifically to determine mean values that average out latency and jitter. It might seem that this is a lot of trouble to go to just establish a microsecond value for `G.zeroOffset`. However the measurements have established that the Raspberry Pi 4 is a very good time keeper, capable of measuring the time of an external event on a gpio pin to microsecond accuracy.
 
-On the Raspberry Pi and other Linux processors as well, the `G.zeroOffset` delay can be measured entirely in software. That means that, at least in principle, <b>`G.zeroOffset` can be measured and calibrated on any Linux system</b>. 
+On the Raspberry Pi and other Linux ARM processors as well, the `G.zeroOffset` delay can be measured entirely in software. That means that, at least in principle, <b>`G.zeroOffset` can be measured and calibrated on many Linux systems</b>. 
 
-For purposes of this discussion, the PPS interrupt is defined as the time of the rising edge of the PPS signal. The software application that measures `G.zeroOffset` is [**pps-timer**](#the-pps-timer-utility). The app uses a kernel time function, *ktime_get_real_fast_ns()* to probe the earliest time that the PPS interrupt triggers its interrupt service routine. The ISR suspends other processes running on the same core and, in particular, suspends **pps-timer**. The *ktime_get_real_fast_ns()* execution time is on the order of 0.2 microseconds or less if it executes before the PPS interrupt service routine, but is delayed and is much longer if it begins to execute after the PPS ISR begins executing. The time reported by *ktime_get_real_fast_ns()* before it was delayed is recorded and is interpreted to be the time that the PPS interrupt occurred to within about a tenth of a microsecond. 
+For purposes of this discussion, the PPS interrupt is defined as the time of the rising edge of the PPS signal. The software application that measures `G.zeroOffset` is [**pps-timer**](#the-pps-timer-utility). The app uses a kernel time function, *ktime_get_real_fast_ns()* to probe the earliest time that the PPS interrupt triggers its interrupt service routine. The ISR suspends other processes running on the same core and, in particular, it suspends **pps-timer**. The *ktime_get_real_fast_ns()* execution time is on the order of 0.2 microseconds or less (on the RPi's) if it executes before the PPS interrupt service routine, but is delayed and is much longer if it begins to execute after the PPS ISR begins executing. The time reported by *ktime_get_real_fast_ns()* before it was delayed is recorded and is interpreted to be the time that the PPS interrupt occurred to within about a tenth of a microsecond. 
 
 When the time of the PPS interrupt is timed with pps-timer on a processor running with **zeroOffset=0** in <b>/etc/pps-client.conf</b>, the PPS interrupt time will be a time somewhere in the range of about -3 to -12 microseconds.
 
-The plot in Figure 8 shows how the PPS interrupt time looks on a typical Raspberry Pi 4. The graph appears to be a normal distribution. But that is incorrect. It is actually a super-position of two half normal distributions. The distribution was collected by the pps-timer utility while monitoring the PPS interrupt time. Neither pps-timer nor pps-client can actually cause a distribution tail that moves in the direction of decreasing clock time. The negative-going tail is caused by pps-timer being bumped by jitter toward later times relative to pps-client, causing time values to appear earlier in time. Times later than the maximum of the distribution are introduced by jitter experienced by pps-client but not by pps-timer. 
+The plot in Figure 8 shows how the PPS interrupt time looks on a typical Raspberry Pi 4. The graph appears to be a normal distribution. But that is incorrect. It is actually a super-position of a half normal distribution and a normal distribution. The distribution was collected by the pps-timer utility while monitoring the PPS interrupt time. Neither pps-timer nor pps-client can actually cause a distribution tail that moves in the direction of decreasing clock time. The negative-going tail is caused by pps-timer being bumped by jitter toward later times relative to pps-client, causing time values to appear earlier in time. Times later than the maximum of the distribution are introduced by jitter experienced by pps-client but not by pps-timer. 
 
-The maximum of the forward half-normal distribution is -4.74 microseconds and the standard distribution is 0.51 second. Those values were determined by the [normal-params utility](#normal-params-utility).
+The maximum of the forward normal distribution is -3.58 microseconds and the standard distribution is 0.42 microsecond. Those values were determined by the [normal-params utility](#normal-params-utility).
 
 <center>![PPS Time RPi 4](pps-time.png)</center>
 
-Figure 9 is typical of a Raspberry Pi 3. It is easier to see the two separate distributions in this figure. The maximum of the forward half-normal distribution in this case is -7.32 and the standard deviation is 0.62.
+Figure 9 is typical of a Raspberry Pi 3. The maximum of the forward normal distribution in this case is -7.32 and the standard deviation is 0.62.
 
 <center>![PPS Time RPi 3](pps-time-rpi3.png)</center>
 
 These plots are of 86,400 accumulated PPS interrupt times collected over a period of 24 hours. They are representative of the data that is used to determine `G.zeroOffset`. 
 
-The local clock is not corrected which means that it is literally synchronized to the timestamp of the PPS signal which is taken to be time zero. Clearly, from Figure 8, the actual time of occurrence of the PPS signal for this Raspberry Pi 4 is -4.74 microseconds earlier. To correct the local clock so that the time of the PPS signal is at zero, we need to add the positive value corresponding to the negative offset seen in Figure 8.
+The local clock is not corrected which means that it is literally synchronized to the timestamp of the PPS signal which is taken to be time zero. Clearly, from Figure 8, the actual time of occurrence of the PPS signal for this Raspberry Pi 4 is -3.58 microseconds earlier. To correct the local clock so that the time of the PPS signal is at zero, we need to add the positive value corresponding to the negative offset seen in Figure 8.
 
 Evaluating distributions of the kind shown in Figure 8 and Figure 9 is described in [Measuring zeroOffset with pps-timer](#measuring-zerooffset-with-pps-timer).
 
@@ -526,7 +522,7 @@ Because these errors are very small, they are ignored. A LibreOffice Calc spread
 
 Measurements collected by pps-timer are written to <b>/var/local/pps-time-distrib-forming</b> and <b>/var/local/prop-delay-distrib-forming</b>. After 24 hours these results are transferred to <b>/var/local/pps-time-distrib</b> and <b>/var/local/prop-delay-distrib</b>.
 
-The pps-timer utility requires no arguments and automatically loads its kernel driver. To run it,
+The pps-timer utility requires no arguments (unless the bin resolution is changed from the default of 0.5 microseconds) and automatically loads its kernel driver. To run it,
 
 	$ sudo pps-timer
 
@@ -544,13 +540,13 @@ The normal-params utility, which requires no driver, is automatically installed 
 
 The distributions obtained in testing PPS-Client are usually narrow which makes it difficult to estimate peaks and standard deviations. Moreover there is ample evidence that the random component of the PPS-Client distributions is well-modeled by a [normal distribution](https://en.wikipedia.org/wiki/Normal_distribution) but is also binned over a small number of bins. The `normal-params` program makes it possible to directly compute normal distribution parameters from binned values of a sample distribution. 
 
-The program uses a Monte Carlo simulation to fit an ideal [normal distribution](https://en.wikipedia.org/wiki/Normal_distribution) to three binned sample values from the distribution. If the sample distribution departs from normal, there will be a conformance error listed as relative fit which is a measure of the reliability of the calculated values of both ideal mean and ideal SD. Roughly speaking, relative fit is the probability that the samples are actually drawn from a normal distribution.
+The program fits a one-million-sample Monte Carlo simulation to three binned sample values from the distribution. If the sample distribution departs from normal, there will be a conformance error listed as relative fit which is a measure of the reliability of the calculated values of both ideal mean and ideal SD. Roughly speaking, relative fit is the probability that the samples are actually drawn from a normal distribution.
 
 Bins are centered on the sample x-coordinate values entered to the program. For example the bin at 800000 in the example below extends from 799999.5 to 800000.5. 
 
 The program can be used to determine mean and SD for any of the sample distributions collected in testing PPS-Client including positive-only distributions which fit a [half-normal distribution](https://en.wikipedia.org/wiki/Half-normal_distribution) in the direction of increasing delay or forward time. 
 
-If the distribution is half-normal then enter only completely filled bins in the direction away from the maximum and **use double the number of actual samples** to make normal-params treat the bins as those from the right side of a normal distribution. For example, the interrupt delay distribution in [Figure 2c](#raspberry-pi-4) was evaluated for mean and standard deviation by providing the sample numbers for the sample bins from 5 forward like this (only 43,200 actual samples were actually collected),
+If the distribution is entirely half-normal then enter only completely filled bins in the direction away from the maximum and **use double the number of actual samples** to make normal-params treat the bins as those from the right side of a normal distribution. For example, the interrupt delay distribution in [Figure 2c](#raspberry-pi-4) was evaluated for mean and standard deviation by providing the sample numbers for the sample bins from 5 forward like this (only 43,200 actual samples were collected),
 
 	$ normal-params 5 29247 6 11742 7 1846 86400
 	Relative to the best fit normal distribution:
@@ -568,40 +564,37 @@ For a distribution expected to be nearly [normally distributed](https://en.wikip
 	stddev: 0.947150
 	Relative fit of samples: 0.995888
 
-There is also a third possibility and this is the most common case: Two mixed half-normal distributions in opposite directions from the maximum. This applies to distributions collected by the pps-timer utility where the half of the distribution in the direction of increasing time is the result of Type 2a noise in PPS-Client and the half of the distribution in the direction of decreasing time is the result of Type 2a noise in the pps-timer utility. In this case no doubling of the count for the two half-normal distributions is necessary. For example, for this pps-timer distribution the two half-normal distributions are visually quite evident,
+There is also a third possibility and this is the most common case: A half-normal distribution mixed with a normal distribution. This applies to distributions collected by the pps-timer utility where the half of the distribution in the direction of increasing time is the result of Type 2b and 2c noise in PPS-Client and the half of the distribution in the direction of decreasing time is the result of Type 2a noise in the pps-timer utility. In this case no doubling of the count for either distributions is necessary. For example, for this pps-timer distribution the two different distributions are visually quite evident,
 
-	-8.5 0
-	-8.0 0
-	-7.5 0
-	-7.0 0
-	-6.5 20
-	-6.0 268
-	-5.5 2361
-	-5.0 19598
-	-4.5 35125
-	-4.0 24724
-	-3.5 4243
-	-3.0 60
-	-2.5 0
-	-2.0 0
-	-1.5 0
-	-1.0 0
+	-13 4
+	-12 0
+	-11 2
+	-10 25
+	 -9 484
+	 -8 6695
+	 -7 24608
+	 -6 33413
+	 -5 18978
+	 -4 2183
+	 -3 1
+	 -2 0
+	 -1 0
 
-In the direction of later time (PPS-Client half-normal jitter distribution),
+In the direction of later time (PPS-Client Type 2b and 2c noise),
 
-	$ normal-params -4.0 24724 -3.5 4243 -3.0 60 86400
+	$ normal-params -5 18978 -4 2183 -3 1
 	Relative to the best fit normal distribution:
-	maximum:  -4.422881
-	stddev: 0.411773
-	Relative fit of samples: 0.999139
+	mean:  -6.048083
+	stddev: 0.795988
+	Relative fit of samples: 0.999613
 
-In the direction of earlier time (pps-timer half-normal jitter distribution),
+In the direction of earlier time (pps-timer Type 2a noise),
 
-	$ normal-params -6.5 20 -6.0 268 -5.5 2361 86400
+	$ normal-params -10 25 -9 484 -8 6695
 	Relative to the best fit normal distribution:
-	maximum:  -4.142910
-	stddev: 0.591466
-	Relative fit of samples: 0.999969
+	mean:  -6.291076
+	stddev: 0.873670
+	Relative fit of samples: 0.999902
 
 Because there is an abundance of samples, the normal-params utility accurately resolves maximum and SD of the separate half-normal distributions. But, of course, this assumes that each distribution had 43,200 samples in its half of the distribution which might not be the case. Nevertheless, the approximation is good if the difference in the two distributions is not extreme because the normal-params utility is relatively insensitive to the number of samples in the distribution. For example, changing the number of samples in the distribution by +/- 2000 only changes the position of the maximum by +/- 0.01 microsecond in both of the distributions above.
 
@@ -632,7 +625,7 @@ and uncomment it,
 	
 Then ctrl-s ctrl-x to save and exit nano. The new value of `G.zeroOffset` will be immediately updated by the pps-client daemon. The pps-timer utility requires no parameters. It will load its driver and immediately start recording samples of the PPS interrupt triggering its ISR.
 
-For for any processor, to load and start the app, just do,
+For for a Raspberry Pi 4, to load and start the app, just do,
 
 	$ sudo pps-timer &
 	
@@ -640,102 +633,103 @@ At this point you should see something like,
 	
 <center>![pps-timer starting](pps-timer-starting.png)</center>
 
+For a Raspberry Pi 3, do (-dr sets the distribution bin resolution),
+
+	$ sudo pps-timer -dr 1 &
+
 To determine the median PPS time the app collects time samples to a file <b>/var/local/pps-time-distrib-forming</b>. 24 hours later, the distribution is copied to <b>/var/local/pps-time-distrib</b>. Interpreting the file distribution will be discussed next.
 
 
 ## Test Results {#test-results}
 
-Ten Raspberry Pi 3 and ten Raspberry Pi 4 processors were evaluated with pps-timer. The test file of interest is <b>/var/local/pps-time-distrib</b>. After 24 hours, the pps-time-distrib file has accumulated a distribution of 86,400 samples of PPS time. **All of these distributions are mixed half-normal** and must be evaluated as such. In all cases there is a half-normal distribution in the direction of later time caused by Type 2a noise that is jitter in pps-client. That is the distribution corresponding to PPS-Client. There is also a half-normal distribution in the opposite direction corresponding to jitter in pps-timer.
+Ten Raspberry Pi 3 and ten Raspberry Pi 4 processors were evaluated with pps-timer. The test file of interest is <b>/var/local/pps-time-distrib</b>. After 24 hours, the pps-time-distrib file has accumulated a distribution of 86,400 samples of PPS time. **All of these distributions are mixed half-normal and normal** and were evaluated as such. In all cases there is a half-normal distribution in the direction of earlier time caused by Type 2a noise that is jitter in pps-timer. The distribution corresponding to PPS-Client is in the direction of later time.
 
-The maximum value of the half-normal distribution provides the jitter-free estimate of the PPS time. The maximum value for each processor was determined with the normal-params utility. For example, for Raspberry Pi 4 unit #1 the <b>/var/local/pps-time-distrib</b> file provided the following distribution,
+The maximum value of the normal distribution provides the jitter-free estimate of the PPS time. The maximum value for each processor was determined with the normal-params utility. For example, for Raspberry Pi 4 unit #1 the <b>/var/local/pps-time-distrib</b> file provided the following distribution,
 
-	-8.0 0
-	-7.5 0
-	-7.0 0
-	-6.5 20
-	-6.0 268
-	-5.5 2361
-	-5.0 19598
-	-4.5 35125
-	-4.0 24724
-	-3.5 4243
-	-3.0 60
-	-2.5 0
-	-2.0 0
-	-1.5 0
+	 -7.5 0
+	 -7.0 11
+	 -6.5 67
+	 -6.0 1180
+	 -5.5 11119
+	 -5.0 30041
+	 -4.5 31026
+	 -4.0 12126
+	 -3.5 824
+	 -3.0 2
+	 -2.5 0
 
-This is a mixed half-normal distribution in both directions that was plotted as the graph in Figure 8. Three bin values from the later time half-normal distribution were provided to the [normal-params](#normal-params-utility) utility resulting in,
+This is a mixed half-normal and normal distribution in the direction of later time that was plotted as the graph in Figure 8. Three bin values from the later time normal distribution were provided to the [normal-params](#normal-params-utility) utility resulting in,
 
-	$ normal-params -4.0 24724 -3.5 4243 -3.0 60 86400
+	$ normal-params -3.5 37879 -3.0 16671 -2.5 214
 	Relative to the best fit normal distribution:
-	maximum:  -4.422881
-	stddev: 0.411773
-	Relative fit of samples: 0.999139
+	mean:  -3.586802
+	stddev: 0.417912
+	Relative fit of samples: 0.988177
 
-The maximum value is the best estimate of the PPS rising edge time and that value was rounded and sign inverted to provide `G.zeroOffset`. That is the first line in the table of Raspberry Pi 4 times below. Data for the Raspberry Pi 3 was processed identically.
+The maximum value is the best estimate of the PPS rising edge time and that value was rounded and sign inverted to provide `G.zeroOffset`. That is the second line in the table of Raspberry Pi 4 times below. Data for the Raspberry Pi 3 was processed identically.
 
 
 	Raspberry Pi 3 times in microseconds (Linux v5.4.41):
 
 	UNIT#   PPS_time  time_SD fit  zeroOffset  Timeline_SD   Generation
 	---------------------------------------------------------------------------
-	RPi3#1   -6.93    0.491  0.999     7          0.708     Model B Rev 1.2
-	RPi3#2   -5.67    0.479  0.999     6          0.770     Model B+ Rev 1.3
-	RPi3#3   -7.45    0.546  0.999     7          0.729     Model B Rev 1.2
-	RPi3#4   -7.31    0.459  0.999     7          0.719     Model B Rev 1.2
-	RPi3#5   -6.74    0.493  0.999     7          0.719     Model B Rev 1.2
-	RPi3#6   -5.92    0.483  0.998     6          0.776     Model B+ Rev 1.3
-	RPi3#7   -7.96    0.450  0.999     8          0.761     Model B Rev 1.2
-	RPi3#8   -8.24    0.455  0.999     8          0.752     Model B Rev 1.2
-	RPi3#9   -8.07    0.431  0.999     8          0.758     Model B Rev 1.2
-	RPi3#10  -8.18    0.454  0.999     8          0.740     Model B Rev 1.2
+	RPi3#1   -6.05    0.796  0.999     6          1.026     Model B Rev 1.2
+	RPi3#2   -5.93    0.926  0.997     6          0.971     Model B+ Rev 1.3
+	RPi3#3   -6.03    0.640  0.999     6          1.073     Model B Rev 1.2
+	RPi3#4   -6.69    1.105  0.988     7          1.124     Model B Rev 1.2
+	RPi3#5   -6.66    1.013  0.991     7          1.053     Model B Rev 1.2
+	RPi3#6   -5.08    0.902  0.982     5          0.955     Model B+ Rev 1.3
+	RPi3#7   -7.58    0.560  0.994     8          0.686     Model B Rev 1.2
+	RPi3#8   -7.35    0.514  0.999     7          0.634     Model B Rev 1.2
+	RPi3#9   -6.86    0.685  0.999     7          0.778     Model B Rev 1.2
+	RPi3#10  -7.51    0.535  0.999     8          0.730     Model B Rev 1.2
 
 
-The average PPS time and range for the ten Raspberry Pi 3 units is -7.24 microseconds. The two low values are are Model B+ Rev 1.3 units. These probably average 6 microseconds to the nearest second. The Model B Rev 1.2 units alone average -7.67 or 8 microseconds to the nearest second. The average of the *timeline* SD is 0.743.
+The average PPS time and range for the ten Raspberry Pi 3 units is -6.57 microseconds. The two lowest values are are Model B+ Rev 1.3 units. These probably average 6 microseconds to the nearest second. The Model B Rev 1.2 units alone average -6.84 or 7 microseconds to the nearest second. The average of the *timeline* SD is 0.903.
 
-The results for the Raspberry Pi 4 processors is shown next.
+The results for the Raspberry Pi 4 processors are:
 
 	Raspberry Pi 4 times in microseconds (Linux v5.4.41):
 	
 	UNIT#   PPS_time  time_SD fit  zeroOffset  Timeline_SD    Generation 
 	------------------------------------------------------------------------------------
-	RPi4#1   -4.42    0.412  0.999     4          0.506     Model B Rev 1.1
-	RPi4#2   -4.19    0.411  0.999     4          0.493     Model B Rev 1.1
-	RPi4#3   -3.97    0.388  0.999     4          0.494     Model B Rev 1.1
-	RPi4#4   -4.09    0.356  0.999     4          0.499     Model B Rev 1.1
-	RPi4#5   -3.97    0.356  0.996     4          0.524     Model B Rev 1.2
-	RPi4#6   -4.04    0.380  0.999     4          0.461     Model B Rev 1.2
-	RPi4#7   -4.09    0.429  0.999     4          0.521     Model B Rev 1.2
-	RPi4#8   -3.87    0.409  0.999     4          0.487     Model B Rev 1.2
-	RPi4#9   -3.90    0.416  0.999     4          0.522     Model B Rev 1.2
-	RPI4#10  -4.06    0.401  0.999     4          0.526     Model B Rev 1.2
+	RPi4#1   -4.65    0.384  0.999     5          0.542     Model B Rev 1.1
+	RPi4#2   -3.59    0.418  0.988     4          0.557     Model B Rev 1.1
+	RPi4#3   -3.97    0.388  0.999     4          0.517     Model B Rev 1.1
+	RPi4#4   -3.51    0.465  0.973     4          0.641     Model B Rev 1.1
+	RPi4#5   -3.53    0.286  0.996     4          0.582     Model B Rev 1.2
+	RPi4#6   -3.75    0.467  0.991     4          0.634     Model B Rev 1.2
+	RPi4#7   -3.69    0.468  0.999     4          0.565     Model B Rev 1.2
+	RPi4#8   -3.63    0.462  0.987     4          0.585     Model B Rev 1.2
+	RPi4#9   -3.47    0.292  0.999     4          0.581     Model B Rev 1.2
+	RPI4#10  -3.64    0.450  0.988     4          0.597     Model B Rev 1.2
 
-The average PPS time of the ten Raspberry Pi 4 units is -4.06 or -4 microseconds rounded to the nearest microsecond. The average the *timeline* (Type 2b + 2c noise) standard deviation is 0.503.
+The average PPS time of the ten Raspberry Pi 4 units is -3.74 or -4 microseconds rounded to the nearest microsecond. The average the *timeline* (Type 2b + 2c noise) standard deviation is 0.580.
 
 ## Test Notes {#test-notes}
 
-It is worth noting that Raspberry Pi 4 processors provided extremely clean time distributions. For example the distribution for RPi4#1 shown at the head of this section contains all but one of the collected time values. Two or three time values falling outside of the distribution was typical of the RPi4 processors. The RPi3 processors, on the other hand, typically had dozens. This is puzzling because exactly the same programs and test procedures were used for both. Could the reason be architectural differences in the processors?
- 
-The testing was done by segregating PPS-Client and the pps-timer utility from the other processes running on the RPi processors. These programs were confined to a single core of the processor with the *system taskset utility* and as much as possible the remaining processes running on the processor were pushed onto the three remaining cores. This was not successful for all processes because some are not movable. Nevertheless, this worked well for the Raspberry Pi 4 processors. For example, this is the [PPS jitter](#configuration-file) distribution recorded for RPi4#1
+The testing was done by segregating PPS-Client and the pps-timer utility from the other processes running on the RPi processors. These programs were confined to a single core of the processor with the *system taskset utility* and as much as possible the remaining processes running on the processor were pushed onto the three remaining cores. This was not successful for all processes because some are not movable. Nevertheless, this worked well for the Raspberry Pi processors. For example, this is the [PPS jitter](#configuration-file) distribution recorded for RPi4#2
 
+	-8 0
 	-7 0
-	-6 0
-	-5 1
-	-4 6
-	-3 38
-	-2 247
-	-1 12316
-	0 61154
-	1 11908
-	2 657
-	3 60
-	4 10
-	5 2
+	-6 1
+	-5 0
+	-4 0
+	-3 11
+	-2 167
+	-1 11661
+	0 62722
+	1 11210
+	2 533
+	3 78
+	4 14
+	5 1
 	6 0
-	7 1
-	8 0
+	7 0
+	8 1
 	9 0
+	10 0
 
-All 86,400 time values are displayed in this section of the distribution. You might want to compare this with the distribution provided in the [Feedback Controller](#feedback-controller) section of this document which is typical when no segregation is done. Segregation is not always practical because it effectively reduces the number of working cores by one. But if the sole purpose of the processor is its time measuring capability this is clearly quite effective for RPi4 processors but not, as noted above, for RPi3 processors.
+All 86,400 time values are displayed in this section of the distribution. You might want to compare this with the distribution provided in the [Feedback Controller](#feedback-controller) section of this document which is typical when no segregation is done. Segregation is not always practical because it effectively reduces the number of working cores by one. But if the sole purpose of the processor is its time measuring capability this is clearly quite effective for RPi processors.
 
 
