@@ -39,7 +39,7 @@ The *timeline* is not straight. Because of continuous small variations in the fr
 
 The time corrections required to keep the *timeline* synchronized to the rising edge of the PPS signal never exceeded 1 microsecond in this 24 hour period. Consequently, the *timeline* was continuously synchronized to the PPS over 24 hours and can be continuously synchronized indefinitely. This was true for twenty Raspberry  Pi units that were tested. 
 
-That *timeline* test data shows that the **precision** (Figure 2) of the time is a *timeline* with a standard deviation of 0.5 microsecond for a sample size of ten RPi4 units and an SD of 0.75 microsecond for a sample size of ten RPi3 units.
+That *timeline* test data shows that the **precision** (Figure 2) of the time is a *timeline* with a standard deviation of 0.6 microsecond for a sample size of ten RPi4 units and an SD of 0.9 microsecond for a sample size of ten RPi3 units.
 
 As shown in the same figure, timekeeping **accuracy** is the time offset at the rollover of the second which is also the offset between the true time and the measured time at any point in time.
 
