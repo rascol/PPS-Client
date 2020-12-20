@@ -3,7 +3,7 @@
 # Comment/uncomment the following line to disable/enable debugging
 #DEBUG = y
 
-export ARCH=arm
+#export ARCH=arm
 
 # Add your debugging flag (or not) to EXTRA_CFLAGS
 ifeq ($(DEBUG),y)
