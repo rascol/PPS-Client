@@ -1,4 +1,4 @@
-# PPS Client Documentation (rev. b) {#mainpage}
+# PPS Client Documentation (rev. c) {#mainpage}
 
 - [Uses](#uses)
 - [PPS-Client High Accuracy Timekeeping](#pps-client-high-accuracy-timekeeping)

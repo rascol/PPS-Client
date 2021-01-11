@@ -1881,7 +1881,7 @@ int assignProcessorAffinity(void){
 	int bitmask = 0;
 	struct stat stat_buf;
 
-	sprintf(cmdstr, "printf 'Assigned PPS-Client to processor %d\n'", g.useCore);
+//	sprintf(cmdstr, "printf 'Assigned PPS-Client to processor %d\n'", g.useCore);
 	sysCommand(cmdstr);
 
 	for (int i = g.nCores - 1; i >= 0; i--){						// Create bitmask of cores to be used

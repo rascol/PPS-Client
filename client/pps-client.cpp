@@ -21,7 +21,7 @@
  */
 
 /*
- * Copyright (C) 2016-2020 Raymond S. Connell
+ * Copyright (C) 2016-2021 Raymond S. Connell
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -50,7 +50,7 @@ extern int adjtimex (struct timex *timex);
  */
 //extern int gettimeofday(struct timeval *tv, struct timezone *tz);
 
-const char *version = "2.0.2";							//!< Program v2.0.0 updated on 9 Jul 2020
+const char *version = "2.0.3";							//!< Program v2.0.3 updated on 11 Jan 2021
 
 struct G g;												//!< Declares the global variables defined in pps-client.h.
 
@@ -692,24 +692,6 @@ void savePPStime(int timeCorrection){
 }
 
 /**
- * Gets the fractional seconds part of interrupt time
- * and if the value should be interpreted as negative
- * then translates the value.
- *
- * @param[in] fracSec The delayed time of
- * the PPS rising edge returned by the system clock.
- *
- * @returns The signed fractional seconds part of the time.
- */
-int signedFractionalSeconds(int fracSec){
-
-	if (fracSec > 500000){
-		fracSec -= USECS_PER_SEC;
-	}
-	return fracSec;
-}
-
-/**
  * Advances a monotonic time count G.t_count second by
  * second. That happens even when this function is not
  * called in a particular second.
@@ -985,9 +967,8 @@ int makeTimeCorrection(struct timeval pps_t){
 
 	g.ppsTimestamp = (int)pps_t.tv_usec;
 
-	int time0 = g.ppsTimestamp - g.zeroOffset;
-
-	g.rawError = signedFractionalSeconds(time0);		// g.rawError is set to zero by the feedback loop causing
+	g.rawError = g.ppsTimestamp - g.zeroOffset;
+														// g.rawError is set to zero by the feedback loop causing
 														// pps_t.tv_usec == g.zeroOffset so that the timestamp
 	g.zeroError = removeNoise(g.rawError);				// is equal to the PPS delay.
 
