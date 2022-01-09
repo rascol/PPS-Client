@@ -591,6 +591,24 @@ bool detectDelaySpike(int rawError){
 }
 
 /**
+ * Gets the fractional seconds part of interrupt time
+ * and if the value should be interpreted as negative
+ * then translates the value.
+ *
+ * @param[in] fracSec The delayed time of
+ * the PPS rising edge returned by the system clock.
+ *
+ * @returns The signed fractional seconds part of the time.
+ */
+int signedFractionalSeconds(int fracSec){
+
+	if (fracSec > 500000){
+		fracSec -= USECS_PER_SEC;
+	}
+	return fracSec;
+}
+
+/**
  * Removes delay spikes and jitter from rawError and
  * returns the resulting clamped zeroError.
  *
@@ -604,9 +622,15 @@ int removeNoise(int rawError){
 
 	buildRawErrorDistrib(rawError, g.rawErrorDistrib, &(g.ppsCount));
 
-	g.jitter = rawError;
-	g.isDelaySpike = detectDelaySpike(rawError);	// g.isDelaySpike == true will prevent time and
-													// frequency updates during a delay spike.
+//	if (rawError < -1000){
+//		g.jitter = 1000000 + rawError;
+//	}
+//	else {
+		g.jitter = rawError;
+//	}
+
+	g.isDelaySpike = detectDelaySpike(rawError);
+
 	getTimeSlew(rawError);
 
 	if (writeJitterDistrib && g.seq_num > SETTLE_TIME){
@@ -967,10 +991,11 @@ int makeTimeCorrection(struct timeval pps_t){
 
 	g.ppsTimestamp = (int)pps_t.tv_usec;
 
-	g.rawError = g.ppsTimestamp - g.zeroOffset;
-														// g.rawError is set to zero by the feedback loop causing
-														// pps_t.tv_usec == g.zeroOffset so that the timestamp
-	g.zeroError = removeNoise(g.rawError);				// is equal to the PPS delay.
+	int time0 = g.ppsTimestamp - g.zeroOffset;
+
+    g.rawError = signedFractionalSeconds(time0);        // g.rawError is set to zero by the feedback loop causing
+    													// pps_t.tv_usec == g.zeroOffset so that the timestamp
+    g.zeroError = removeNoise(g.rawError);              // is equal to the PPS delay.
 
 	if (g.isDelaySpike){								// Skip a delay spike.
 		savePPStime(0);

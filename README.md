@@ -72,7 +72,7 @@ For a detailed description of the PPS-Client controller and accuracy calibration
 
 ## Operating System
 
-Versions of Linux kernel 4.19 and later are supported. Currently PPS-Client v2.0 is known to run on **Raspbian** or **Raspberry Pi OS** on the Raspberry Pi and on **Ubuntu** 18.04 on an AMD desktop machine.
+Versions of Linux kernel 4.19 and later are supported. Currently PPS-Client v2.0 is known to run on **Raspbian**, **Raspberry Pi OS** and **StellarMate OS** on the Raspberry Pi and on **Ubuntu** 18.04 on an AMD desktop machine.
 
 ## Support Applications
 
@@ -156,10 +156,10 @@ Then ctrl-o and the enter key to save the file. ctrl-x to exit. Now reboot the P
 ~ $ sudo reboot
 ```
 
-To verify that the PPS signal is being received, the pps-tools package is useful,
+To verify that the PPS signal is being received, the pps-tools package is useful and git will be needed later,
 
 ```
-~ $ sudo apt install pps-tools
+~ $ sudo apt install git pps-tools
 ```
 
 Then do,
@@ -318,19 +318,27 @@ The daemon will continue to run until you reboot the system or until you stop th
 ~ $ sudo pps-client-stop
 ```
 
-To start the PPS-Client daemon as a system service, from a terminal enter:
+To start the PPS-Client daemon as a system service, you must first have installed the systemd service, 
+
+```
+~ $ sudo cp rpi/PPS-Client/client/pps-client.service /etc/systemd/system/pps-client.service
+~ $ sudo chmod 644 /etc/systemd/system/pps-client.service
+
+```
+
+then you may enter:
 
 ```
 ~ $ sudo systemctl start pps-client
 ```
 
-If started as a system service you must stop it with
+If PPS-Client is started as a system service you must stop it with
 
 ```
 ~ $ sudo systemctl stop pps-client
 ```
 
-To have pps-client start up at system boot,
+To have PPS-Client start up at system boot,
 
 ```
 ~ $ sudo systemctl enable pps-client
