@@ -28,8 +28,8 @@
 #include <math.h>
 #include <errno.h>
 
-const char *version = "pps-client-installer v2.0.0";
-const char *cfgVersion = "2.0.0";
+const char *version = "pps-client-installer v2.0.4";
+const char *cfgVersion = "2.0.4";
 
 char *configbuf = NULL;
 unsigned char *fbuf = NULL;

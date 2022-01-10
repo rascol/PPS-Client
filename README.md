@@ -1,4 +1,4 @@
-# PPS-Client v2.0.3
+# PPS-Client v2.0.4
 
 <p align="center"><img src="figures/RPi_with_GPS.jpg" alt="Raspberry Pi with GPS" width="400"/></p>
 
@@ -207,6 +207,7 @@ That command isn't necessary if you recompile and reinstall later with the same 
 ```
 ~/rpi/PPS-Client $ make
 ~/rpi/PPS-Client $ sudo make install
+~/rpi/PPS-Client $ sudo reboot
 
 ```
 
@@ -271,16 +272,26 @@ If you are reinstalling a PPS-Client package that you previously compiled,
 ~/rpi/PPS-Client $ make clean
 ~/rpi/PPS-Client $ make
 ~/rpi/PPS-Client $ sudo make install
+~/rpi/PPS-Client $ sudo reboot
+
 ```
 
 
 # Running PPS-Client
 ---
 
-PPS-Client requires a PPS hardware signal from a GPS module [Hardware Requirements](#hardware-requirements). Once the GPS is connected and the PPS signal is present on GPIO 4 you start PPS-Client with,
+The PPS-Client daemon should be launched with systemd. 
 
 ```
-~ $ sudo pps-client
+~ $ sudo cp rpi/PPS-Client/client/pps-client.service /etc/systemd/system/pps-client.service
+~ $ sudo chmod 644 /etc/systemd/system/pps-client.service
+
+```
+
+Once the GPS is connected and the PPS signal is present on GPIO 4 you can start PPS-Client with,
+
+```
+~ $ sudo systemctl start pps-client
 ```
 
 That installs pps-client as a daemon. To watch the controller acquire you can subsequently enter
@@ -315,26 +326,6 @@ To stop the display type ctrl-c.
 The daemon will continue to run until you reboot the system or until you stop the daemon with
 
 ```
-~ $ sudo pps-client-stop
-```
-
-To start the PPS-Client daemon as a system service, you must first have installed the systemd service, 
-
-```
-~ $ sudo cp rpi/PPS-Client/client/pps-client.service /etc/systemd/system/pps-client.service
-~ $ sudo chmod 644 /etc/systemd/system/pps-client.service
-
-```
-
-then you may enter:
-
-```
-~ $ sudo systemctl start pps-client
-```
-
-If PPS-Client is started as a system service you must stop it with
-
-```
 ~ $ sudo systemctl stop pps-client
 ```
 
@@ -344,8 +335,6 @@ To have PPS-Client start up at system boot,
 ~ $ sudo systemctl enable pps-client
 ~ $ sudo systemctl start pps-client
 ```
-
-The "`pps-client -v`" command continues to work as described above.
 
 ## Restarting
 
