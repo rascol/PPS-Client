@@ -50,7 +50,7 @@ extern int adjtimex (struct timex *timex);
  */
 //extern int gettimeofday(struct timeval *tv, struct timezone *tz);
 
-const char *version = "2.0.3";							//!< Program v2.0.3 updated on 11 Jan 2021
+const char *version = "2.0.4";							//!< Program v2.0.3 updated on 11 Jan 2021
 
 struct G g;												//!< Declares the global variables defined in pps-client.h.
 
@@ -1428,7 +1428,7 @@ int main(int argc, char *argv[])
 	}
 
 	if (geteuid() != 0){								// If zero, then the program was started by superuser.
-		printf("pps-client is not running. \"sudo pps-client\" to start.\n");
+		printf("pps-client is not running. \"sudo systemctl start pps-client\" to start.\n");
 		return rv;
 	}
 

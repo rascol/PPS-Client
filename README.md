@@ -280,15 +280,7 @@ If you are reinstalling a PPS-Client package that you previously compiled,
 # Running PPS-Client
 ---
 
-The PPS-Client daemon should be launched with systemd. 
-
-```
-~ $ sudo cp rpi/PPS-Client/client/pps-client.service /etc/systemd/system/pps-client.service
-~ $ sudo chmod 644 /etc/systemd/system/pps-client.service
-
-```
-
-Once the GPS is connected and the PPS signal is present on GPIO 4 you can start PPS-Client with,
+The PPS-Client daemon should be launched with systemctl. Once the GPS is connected and the PPS signal is present on GPIO 4 you can start PPS-Client with,
 
 ```
 ~ $ sudo systemctl start pps-client
@@ -300,7 +292,7 @@ That installs pps-client as a daemon. To watch the controller acquire you can su
 ~ $ pps-client -v
 ```
 
-That runs a secondary copy of PPS-Client that just displays a status printout that the PPS-Client daemon continuously generates and saves to an in-memory file. When PPS-Client starts up you can expect to see something like the following in the status printout:
+That runs a second copy of PPS-Client that just displays a status printout that the PPS-Client daemon continuously generates and saves to an in-memory file. When PPS-Client starts up you can expect to see something like the following in the status printout:
 
 <p align="center"><img src="figures/StatusPrintoutOnStart.png" alt="Status Printout on Startup"></p>
 
@@ -329,7 +321,7 @@ The daemon will continue to run until you reboot the system or until you stop th
 ~ $ sudo systemctl stop pps-client
 ```
 
-To have PPS-Client start up at system boot,
+To have PPS-Client start up at every system boot,
 
 ```
 ~ $ sudo systemctl enable pps-client
