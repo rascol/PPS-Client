@@ -2,6 +2,7 @@
 Description=PPS-Client systemd service.
 
 [Service]
+ExecStartPre=/bin/sleep 3
 PIDFile=/run/pps-client.pid
 ExecStart=/usr/sbin/pps-client
 ExecStop=/bin/bash /usr/sbin/pps-client-stop
