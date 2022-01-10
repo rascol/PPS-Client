@@ -2,10 +2,10 @@
 Description=PPS-Client systemd service.
 
 [Service]
-Type=forking
 PIDFile=/run/pps-client.pid
 ExecStart=/usr/sbin/pps-client
 ExecStop=/bin/bash /usr/sbin/pps-client-stop
+Restart=always
 
 [Install]
 WantedBy=multi-user.target

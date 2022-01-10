@@ -1427,26 +1427,10 @@ int main(int argc, char *argv[])
 		return rv;										// so return.
 	}
 
-	if (geteuid() != 0){								// If zero, then the program was started by superuser (with "sudo").
+	if (geteuid() != 0){								// If zero, then the program was started by superuser.
 		printf("pps-client is not running. \"sudo pps-client\" to start.\n");
 		return rv;
 	}
-
-//	pid_t pid = fork();									// Fork a duplicate child of this process.
-//
-//	if (pid > 0){										// This is the parent process.
-//		bufferStatusMsg("Spawning pps-client daemon.\n");
-//		return rv;										// Return from the parent process and leave
-//	}													// the child running.
-//
-//	if (pid == -1){										// Error: unable to fork a child from parent,
-//		sprintf(g.logbuf, "Fork in main() failed: %s\n", strerror(errno));
-//		writeToLog(g.logbuf, "main()");
-//		return pid;
-//	}
-//						// pid == 0 for the child process which now will run this code as a daemon
-
-
 
 	getRootHome();
 
