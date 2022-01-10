@@ -2241,8 +2241,8 @@ int accessDaemon(int argc, char *argv[]){
 	getSharedConfigs();
 
 	if (! ppsIsRunning()){						// If not running,
-		remove(f.pidFilename);					// remove a zombie PID filename if one is found.
-		return 1;
+		remove(f.pidFilename);					// remove a zombie PID filename if one is found
+		return 1;								// and return.
 	}
 
 	signal(SIGINT, INThandler);					// Set handler to enable exiting with ctrl-c.

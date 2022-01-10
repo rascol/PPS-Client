@@ -1423,28 +1423,30 @@ int main(int argc, char *argv[])
 	}
 
 	int prStat = accessDaemon(argc, argv);				// Send commands to the daemon.
-	if (prStat == 0 || prStat == -1){					// Program is running or an error occurred.
-		return rv;
+	if (prStat == 0 || prStat == -1){					// Program is running or an error occurred
+		return rv;										// so return.
 	}
 
-	if (geteuid() != 0){								// Superuser only!
+	if (geteuid() != 0){								// If zero, then the program was started by superuser (with "sudo").
 		printf("pps-client is not running. \"sudo pps-client\" to start.\n");
 		return rv;
 	}
 
-	pid_t pid = fork();									// Fork a duplicate child of this process.
+//	pid_t pid = fork();									// Fork a duplicate child of this process.
+//
+//	if (pid > 0){										// This is the parent process.
+//		bufferStatusMsg("Spawning pps-client daemon.\n");
+//		return rv;										// Return from the parent process and leave
+//	}													// the child running.
+//
+//	if (pid == -1){										// Error: unable to fork a child from parent,
+//		sprintf(g.logbuf, "Fork in main() failed: %s\n", strerror(errno));
+//		writeToLog(g.logbuf, "main()");
+//		return pid;
+//	}
+//						// pid == 0 for the child process which now will run this code as a daemon
 
-	if (pid > 0){										// This is the parent process.
-		bufferStatusMsg("Spawning pps-client daemon.\n");
-		return rv;										// Return from the parent process and leave
-	}													// the child running.
 
-	if (pid == -1){										// Error: unable to fork a child from parent,
-		sprintf(g.logbuf, "Fork in main() failed: %s\n", strerror(errno));
-		writeToLog(g.logbuf, "main()");
-		return pid;
-	}
-						// pid == 0 for the child process which now will run this code as a daemon
 
 	getRootHome();
 
