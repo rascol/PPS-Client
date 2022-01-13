@@ -1,4 +1,4 @@
-# PPS-Client v2.0.4 Beta0
+# PPS-Client v2.0.4
 
 <p align="center"><img src="figures/RPi_with_GPS.jpg" alt="Raspberry Pi with GPS" width="400"/></p>
 
@@ -9,17 +9,15 @@ The PPS-Client daemon is a fast, microsecond accuracy Pulse-Per-Second system cl
 - [Software Requirements](#software-requirements)
   - [Operating System](#operating-system)
   - [Support Applications](#support-applications)
-- [Configurable PPS-Client Options](#configurable-pps-client-options)
-  - [No Internet Time](#no-internet-time)
-  - [GPS Time](#gps-time)
 - [Installing](#installing)
   - [Enable the Driver](#enable-the-driver)
   - [NIST Time Server](#nist-time-server)
-  - [GPS Time over a Serial Port](#gps-time-over-a-serial-port)
+  - [GPS Time](#gps-time)
 - [Uninstalling](#uninstalling)
 - [Reinstalling](#reinstalling)
 - [Running PPS-Client](#running-pps-client)
   - [Restarting](#restarting)
+- [Addendum](#addendum)
 
 # Summary
 ---
@@ -79,47 +77,6 @@ Versions of Linux kernel 4.19 and later are supported. Currently PPS-Client v2.0
 The OS must provide the `systemd` system services manager or it must be possible to install it. 
 
 The OS must also provide either the LinuxPPS `pps-gpio` or `pps-ldisc` driver. The `gps-gpio` driver is used if the PPS signal is connected to a GPIO pin. The `pps-ldisc` driver is used when the PPS signal is connected to the DCD line of a serial port. The Raspberry Pi uses the `pps-gpio` driver as described below in [Installing](#installing).
-
-# Configurable PPS-Client Options
----
-
-PPS-Client has several options that can be configured with settings in the **/etc/pps-client.conf** file.
-
-## No Internet Time
-
-As of PPS-Client v1.5.0 the default for setting whole second time-of-day updates is to query NIST time servers over the Internet. You may want use some other program to handle setting time-of-day updates. To tell PPS-Client that it should totally ignore how the clock seconds are set, after installation use a setting in **/etc/pps-client.conf**:
-
-```
-~ $ sudo nano /etc/pps-client.conf
-```
-
-Scroll down to the line,
-
-```
-#nist=disable
-```
-
-and uncomment it. PPS-Client will no longer care about whole-second time of day or how it gets set. But PPS-Client will continue to synchronize the roll-over of the second to the PPS signal. 
-
-## GPS Time
-
-PPS-Client can be configured to have the GPS receiver that is providing the PPS signal also provide the whole-second time of day updates as well. This allows operation with no Internet connection. A Raspberry Pi configured this way could, for example, be used as a Stratum 1 time server for a LAN that is not connected to the Internet. 
-
-To configure this mode after installation,
-
-```
-~ $ sudo nano /etc/pps-client.conf
-```
-
-Scroll down to the line,
-
-```
-#serial=enable
-```
-
-and uncomment it. This will set PPS-Client to read GPS time messages from the serial port. This, of course, requires that the GPS receiver is connected to the serial port of the Raspberry Pi and that the serial port has been set for this purpose. Setting the serial port can be done on **Raspian** by using the **raspi-config** command.  Details are provided in [GPS Time over a Serial Port](#gps-time-over-a-serial-port).
-
-**GPS Only** can be demonstrated with no additional hardware connections if the [Adafruit Ultimate GPS module](https://www.adafruit.com/products/2324) (visible in the picture at the top) is used because this device connects directly to the serial port of the RPi through its GPIO pins.
 
 
 # Installing
@@ -215,24 +172,27 @@ That command isn't necessary if you recompile and reinstall later with the same 
 
 The default setup for PPS-Client is to use NIST time servers over the Internet to provide the whole second wallclock time. If you are satisfied with that you are done.
 
-## GPS Time over a Serial Port
+## GPS Time
 
-PPS-Client can also synchronize whole second time to the serial GPS data stream provided by most GPS receivers. That requires connecting the serial GPS output to the serial port on the RPi. The Adafruit GPS receiver hat for the RPi provides those automatically. For other GPS receivers you will need to wire the serial output lines from the GPS receiver to the GPIO serial port on the RPi.
+PPS-Client can also be configured to have the GPS receiver that is providing the PPS signal also provide the whole-second time of day updates as well. This allows operation with no Internet connection. A Raspberry Pi configured this way could, for example, be used as a Stratum 1 time server for a LAN that is not connected to the Internet.
 
-To make the serial port on the RPi available to be used by the GPS receiver,
+GPS time can be configured with no additional hardware connections if the [Adafruit Ultimate GPS module](https://www.adafruit.com/products/2324) (visible in the picture at the top) is used because this device connects directly to the serial port of the RPi through its GPIO pins. With other GPS receivers, you might have to separately make the serial port connections.
+
+To configure GPS time, first make the serial port on the RPi available to be used by the GPS receiver,
 
 ```
 ~ $ sudo raspi-config
 ```
 
-Scroll down to "Interfacing Options" and in that menu select "Serial". Set "No" for a login shell and "Yes" for the serial port hardware to be enabled. Reboot if necessary and test that you are receiving GPS serial data. The serial port that is used will usually be **/dev/ttyS0**.
-You can check that with,
+Scroll down to "Interface Options" and in that menu select "Serial Port". Set "No" for a login shell and "Yes" for the serial port hardware to be enabled. Reboot the RPi. 
+
+Test that you are receiving GPS serial data. The serial port that is used will usually be **/dev/ttyS0**. You can check that with,
 
 ```
 ~ $ cat /dev/ttyS0
 ```
 
-You should see a stream of GPS data. If that doesn't happen, try nearby serial ports. Those can be seen with,
+You should see a stream of GPS data. Stop it with ctl-c. If you don't get it, try nearby serial ports. Those can be seen with,
 
 ```
 ~ $ ls -l /dev/tty*
@@ -240,8 +200,21 @@ You should see a stream of GPS data. If that doesn't happen, try nearby serial p
 
 The serial port that is providing the serial data will be a serial port that has group "dialout".
 
-The final step is to modify **/etc/pps-client.conf** as described in [GPS Time](#gps-time). If the serial port providing the GPS stream is different from **/dev/ttyS0**, Enter the correct serial port there.
+Finally, set serial mode operation in PPS-Client with,
 
+```
+~ $ sudo nano /etc/pps-client.conf
+```
+
+Scroll down to the line,
+
+```
+#serial=enable
+```
+
+and uncomment it. Then save the file (ctl o).
+
+That will set PPS-Client to read GPS time messages from the serial port. This, of course, requires that the GPS receiver is connected to the serial port of the Raspberry Pi and that the serial port has been set for this purpose. 
 
 # Uninstalling
 ---
@@ -275,8 +248,6 @@ If you are reinstalling a PPS-Client package that you previously compiled,
 ~/rpi/PPS-Client $ sudo reboot
 
 ```
-
-
 # Running PPS-Client
 ---
 
@@ -286,7 +257,15 @@ The PPS-Client daemon should be launched with systemctl. Once the GPS is connect
 ~ $ sudo systemctl start pps-client
 ```
 
-That installs pps-client as a daemon. To watch the controller acquire you can subsequently enter
+That installs PPS-Client as a daemon. To stop PPS-Client
+
+```
+~ $ sudo systemctl stop pps-client
+```
+
+After starting PPS-Client, wait for several seconds to allow the start command to complete. 
+
+Then to watch the controller acquire you can enter,
 
 ```
 ~ $ pps-client -v
@@ -302,7 +281,7 @@ The `jitter` value is showing the fractional second offset of the PPS signal acc
 
 The `jitter` is displaying small numbers. The time of the rising edge of the PPS signal is shown in the second column. The `clamp` value on the far right indicates that the maximum time correction applied to the system clock is being limited to one microsecond. The system clock is synchronized to the PPS signal to a precision of one microsecond.
 
-It can take as long as 20 minutes for PPS-Client to fully acquire the first time it runs (but it can also restart immediately - [see below](#restarting). This slow startup happens if the `jitter` shown in the status printout is on the order of 100,000 microseconds or more. It's quite common for the NTP fractional second to be off by that amount on a cold start. In this case PPS-Client may restart several times as it slowly reduces the `jitter` offset. That happens because system functions that PPS-Client calls internally limit time changes to less than about 500 microseconds in each second.
+It can take as long as 20 minutes for PPS-Client to fully acquire the first time it runs (but it can also restart immediately - [see below](#restarting)). This slow startup happens if the `jitter` shown in the status printout is on the order of 100,000 microseconds or more. It's quite common for the NTP fractional second to be off by that amount on a cold start. In this case PPS-Client may restart several times as it slowly reduces the `jitter` offset. That happens because system functions that PPS-Client calls internally limit time changes to less than about 500 microseconds in each second.
 
 These are the parameters shown in the status printout:
 
@@ -315,20 +294,48 @@ These are the parameters shown in the status printout:
 
 To stop the display type ctrl-c.
 
-The daemon will continue to run until you reboot the system or until you stop the daemon with
+The daemon will continue to run until you reboot the system or until you stop the daemon.
 
-```
-~ $ sudo systemctl stop pps-client
-```
-
-To have PPS-Client start up at every system boot,
+To have PPS-Client start up on every system boot, **first stop PPS-Client** then,
 
 ```
 ~ $ sudo systemctl enable pps-client
 ~ $ sudo systemctl start pps-client
 ```
+You can verify that PPS-Client is running with,
+
+```
+~ $ pps-client -v
+```
+Sometimes *systemctl start* does not immediately respond. You might have to wait several seconds and try the start command again.
+
+If you have successfully configured PPS-Client to start on system boot, a delay in the start of PPS-Client can also occur when the RPi starts up. You might have to allow a few minutes for PPS-Client to start. 
 
 ## Restarting
 
 If PPS-Client has been running long enough that it has acquired the PPS signal and is stable at **clamp: 1** and you have to stop the daemon for some reason but don't reboot, then if you restart PPS-Client within the next few minutes the daemon will resume from where it left off when you stopped it. How well this works will depend on how long the delay is between stopping and restarting because of clock drift. If the clock drifts too much then PPS-Client will do a full restart.
+
+# Addendum
+
+The preferred method of running PPS-Client is to use *systemctl*. However the old method of running is still possible and might occasionally be necessary: To start PPS-Client,
+
+```
+~ $ sudo pps-client &
+```
+
+Notice the use of the ampersand to detach PPS-Client from the terminal window. That is a consequence of no longer explicitly forking PPS-Client as a daemon. That operation is handled best by *systemctl*.
+
+To stop PPS-Client,
+
+```
+~ $ sudo pps-client-stop
+```
+
+Those are the apps that *systemctl* calls under the hood. If you use them, you will, of course, have to restart PPS-Client manually each time you reboot.
+
+Finally, if you believe you have done everything correctly and things are still not working correctly try rebooting. 
+
+
+
+
 
