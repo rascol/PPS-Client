@@ -10,13 +10,15 @@ The PPS-Client daemon is a fast, microsecond accuracy Pulse-Per-Second system cl
   - [Operating System](#operating-system)
   - [Support Applications](#support-applications)
 - [Installing](#installing)
+  - [Verify PPS Reception](#verify-pps-reception)
   - [Enable the Driver](#enable-the-driver)
   - [NIST Time Server](#nist-time-server)
   - [GPS Time](#gps-time)
 - [Uninstalling](#uninstalling)
 - [Reinstalling](#reinstalling)
 - [Running PPS-Client](#running-pps-client)
-  - [Restarting](#restarting)
+  - [Hot Restart](#hot-restart)
+  - [Restart on System Boot](#restart-on-system-boot)
 - [Addendum](#addendum)
 
 # Summary
@@ -84,10 +86,13 @@ The OS must also provide either the LinuxPPS `pps-gpio` or `pps-ldisc` driver. T
 
 Installation of PPS-Client no longer requires installing the Linux kernel because PPS-Client now uses the LinuxPPS drivers provided by the Linux OS. In principle, that makes it possible to install PPS-Client on any Linux system. In practice, many of the small ARM processors do not provide adequate driver or OS support. On the other hand, PPS-Client currently runs on an ARM processor, the Raspberry Pi, and on a desktop machine with an AMD processor running Ubuntu 18.04. This section will provide the details for installation on a Raspberry Pi.
 
+## Verify PPS Reception
+
+The very first thing to do before you begin installing is to verify that your gps receiver is decoding the PPS signal. This should be obvious but it is easy to overlook. The Adafruit GPS Module provides a blinking red light. While the module is attempting to acquire the light blinks about once per second. Once the module has acquired, the light blinks about once every fifteen seconds. Other GPS modules may use a different method.
+
 ## Enable the Driver
 
-
-Before installing the PPS-Client code you should connect the GPS receiver as described in [Hardware Requirements](#hardware-requirements) and verify the reception of the PPS signal. Specifically for the Raspberry Pi, first enable PPS in the system hardware configuration file:
+Specifically for the Raspberry Pi, enable the PPS in the system hardware configuration file:
 
 ```
 ~ $ sudo nano /boot/config.txt
@@ -113,13 +118,13 @@ Then ctrl-o and the enter key to save the file. ctrl-x to exit. Now reboot the P
 ~ $ sudo reboot
 ```
 
-To verify that the PPS signal is being received, the pps-tools package is useful and git will be needed later,
+To continue, we will need a few software packages,
 
 ```
-~ $ sudo apt install git pps-tools
+~ $ sudo apt install git pps-tools build-essential
 ```
 
-Then do,
+The pps-tools package provides a test to verify that the PPS signal is present,
 
 ```
 ~ $ sudo ppstest /dev/pps0
@@ -212,7 +217,7 @@ Scroll down to the line,
 #serial=enable
 ```
 
-and uncomment it. Then save the file (ctl o).
+and uncomment it. Then save the file (ctl-o, enter, ctl-x).
 
 That will set PPS-Client to read GPS time messages from the serial port. This, of course, requires that the GPS receiver is connected to the serial port of the Raspberry Pi and that the serial port has been set for this purpose. 
 
@@ -296,24 +301,34 @@ To stop the display type ctrl-c.
 
 The daemon will continue to run until you reboot the system or until you stop the daemon.
 
-To have PPS-Client start up on every system boot, **first stop PPS-Client** then,
+## Hot Restart
+
+If PPS-Client has been running long enough that it has acquired the PPS signal and is delivering status messages and you have to stop the daemon for some reason but don't reboot, then if you restart PPS-Client within the next few minutes the daemon will resume from where it left off when you stopped it. How well this works will depend on how long the delay is between stopping and restarting because of clock drift. If the clock drifts too much then PPS-Client will do a full restart.
+
+## Restart on System Boot
+
+To have PPS-Client start up on every system boot,
 
 ```
+~ $ sudo systemctl stop pps-client
 ~ $ sudo systemctl enable pps-client
+```
+
+If the enable command was sucessful you will get a success message from *systemctl*. Then start pps-client again,
+
+```
 ~ $ sudo systemctl start pps-client
 ```
-You can verify that PPS-Client is running with,
+
+Now **wait about ten seconds** before you verify that PPS-Client is running with,
 
 ```
 ~ $ pps-client -v
 ```
-Sometimes *systemctl start* does not immediately respond. You might have to wait several seconds and try the start command again.
 
-If you have successfully configured PPS-Client to start on system boot, a delay in the start of PPS-Client can also occur when the RPi starts up. You might have to allow a few minutes for PPS-Client to start. 
+Once the command above starts delivering status messages you can reboot to verify that ppa-client will automatically restart. On an immedate reboot you might again have to wait about ten seconds before the command above starts delivering status messages.
 
-## Restarting
-
-If PPS-Client has been running long enough that it has acquired the PPS signal and is stable at **clamp: 1** and you have to stop the daemon for some reason but don't reboot, then if you restart PPS-Client within the next few minutes the daemon will resume from where it left off when you stopped it. How well this works will depend on how long the delay is between stopping and restarting because of clock drift. If the clock drifts too much then PPS-Client will do a full restart.
+However, **on a cold start you might have to wait for several minutes** for the GPS receiver to acquire the GPS signal before the comand above will deliver status messages. 
 
 # Addendum
 
