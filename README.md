@@ -239,6 +239,13 @@ To remove everything do:
 ~ $ sudo pps-client-remove -a
 ```
 
+With PPS-Client no longer providing the time, you will need to start *systemd-timesyncd*,
+
+```
+~ $ sudo systemctl enable systemd-timesyncd
+~ $ sudo systemctl start systemd-timesyncd
+```
+
 # Reinstalling
 ---
 
@@ -320,15 +327,38 @@ If the enable command was sucessful you will get a success message from *systemc
 ~ $ sudo systemctl start pps-client
 ```
 
-Now **wait about ten seconds** before you verify that PPS-Client is running with,
+Now **wait at least ten seconds** before you verify that PPS-Client is running with,
 
 ```
 ~ $ pps-client -v
 ```
 
-Once the command above starts delivering status messages you can reboot to verify that ppa-client will automatically restart. On an immedate reboot you might again have to wait about ten seconds before the command above starts delivering status messages.
+If PPS-Client has not started yet, you can check the status with,
 
-However, **on a cold start you might have to wait for several minutes** for the GPS receiver to acquire the GPS signal before the comand above will deliver status messages. 
+```
+~ $ sudo systemctl status pps-client
+```
+
+*systemctl* will try to start PPS-Client every 3 seconds until it succeeds. At that point you will get a message like,
+
+```
+● pps-client.service - PPS-Client systemd service.
+   Loaded: loaded (/etc/systemd/system/pps-client.service; enabled; vendor preset: enabled)
+   Active: active (running) since Sun 2022-01-16 10:25:26 EST; 21s ago
+  Process: 916 ExecStartPre=/bin/sleep 3 (code=exited, status=0/SUCCESS)
+ Main PID: 917 (pps-client)
+    Tasks: 1 (limit: 4915)
+   CGroup: /system.slice/pps-client.service
+           └─917 /usr/sbin/pps-client
+
+Jan 16 10:25:23 RPi-4 systemd[1]: Starting PPS-Client systemd service....
+Jan 16 10:25:26 RPi-4 systemd[1]: Started PPS-Client systemd service..
+
+```
+
+Once "*pps-client -v*" starts delivering status messages you can reboot to verify that PPS-Client will automatically restart. On an immedate reboot you might again have to wait at least ten seconds before the command above starts delivering status messages.
+
+However, **on a cold start you might have to wait for several minutes** for the GPS receiver to acquire the GPS signal before "*pps-client -v*" will deliver status messages. 
 
 # Addendum
 
