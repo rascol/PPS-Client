@@ -1013,9 +1013,7 @@ int makeTimeCorrection(struct timeval pps_t){
 
 	g.isControlling = getAcquireState();				// Provides enough time to reduce time slew on startup.
 	if (g.isControlling){
-		
-		sprintf(g.logbuf, "isControlling: true\n");
-		
+				
 		g.avgCorrection = getMovingAverage(g.timeCorrection);
 
 		makeAverageIntegral(g.avgCorrection);			// Constructs an average of integrals of one
@@ -1035,7 +1033,6 @@ int makeTimeCorrection(struct timeval pps_t){
 		g.activeCount += 1;
 	}
 	else {
-		sprintf(g.logbuf, "isControlling: false\n");
 		g.t_count = g.t_now;							// Unless g.isControlling let g.t_count copy pps_t.tv_sec.
 	}													// If g.isControlling then g.t_count is an independent counter.
 
@@ -1319,14 +1316,12 @@ void waitForPPS(bool verbose, pps_handle_t *pps_handle, int *pps_mode){
 
 			rv = loadLastState();		// Attempts to use the previous state to avoid long restarts.
 			if (rv == -1){				// If the previous state is from a recent state can save restart time.
-				printf("Breaking from loadLastState()\n");
 				break;
 			}
 			readState = true;
 		}
 
 		if (g.startingFromRestore > 0){		// Only used on restore
-			printf("Starting from restore\n");
 			g.startingFromRestore -= 1;		// Stops decrementing when g.startingFromRestore == 0
 
 			g.t_now = getNearestSecond();
@@ -1346,10 +1341,7 @@ void waitForPPS(bool verbose, pps_handle_t *pps_handle, int *pps_mode){
 
 		nanosleep(&ts2, NULL);			// Sleep until ready to look for PPS interrupt
 
-		restart = readPPS_SetTime(verbose, &tcp, pps_handle, pps_mode);
-		
-		sprintf(g.logbuf, "Result from restart: %i\n", restart);
-		
+		restart = readPPS_SetTime(verbose, &tcp, pps_handle, pps_mode);		
 		if (restart == -1){
 			break;
 		}
@@ -1388,7 +1380,6 @@ void waitForPPS(bool verbose, pps_handle_t *pps_handle, int *pps_mode){
 			writeStatusStrings();
 
 			if (! g.interruptLost && ! g.isDelaySpike){
-				sprintf(g.logbuf, "No interrupt loss and no delay spike.\n");
 				if (getConfigs() == -1){
 					break;
 				}
