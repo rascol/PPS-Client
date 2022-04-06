@@ -24,7 +24,7 @@
 
 extern struct G g;
 
-const char *config_file = "/XXXX/pps-client.conf";								//!< The PPS-Client configuration file.
+const char *config_file = "/etc/pps-client.conf";								//!< The PPS-Client configuration file.
 const char *last_distrib_file = "/pps-error-distrib";							//!< Stores the completed distribution of offset corrections.
 const char *distrib_file = "/pps-error-distrib-forming";						//!< Stores a forming distribution of offset corrections.
 const char *last_jitter_distrib_file = "/pps-jitter-distrib";					//!< Stores the completed distribution of offset corrections.
@@ -95,7 +95,9 @@ const char *valid_config[] = {
 		"ppsdevice",
 		"ppsphase",
 		"procdir",
-		"segregate"
+		"segregate",
+		"ntpcheck",
+		"ntpServer"
 };
 
 /**
@@ -252,7 +254,7 @@ char *getString(int key){
  */
 bool hasString(int key, const char *string){
 	int i = round(log2(key));
-
+	
 	if (g.config_select & key){
 		char *val = strstr(g.configVals[i], string);
 		if (val != NULL){
@@ -1346,6 +1348,18 @@ int getSharedConfigs(void){
 		g.doNISTsettime = false;
 	}
 
+	if (isEnabled(NTPCHECK)){
+		g.checkNTP = true;
+	}
+	else if (isDisabled(NTPCHECK)){
+		g.checkNTP = false;
+	}
+
+	sp = getString(NTPSERVER);
+	if (sp != NULL){
+		strcpy(g.ntpServer, sp);
+	}
+		
 	return 0;
 }
 
@@ -1569,6 +1583,18 @@ int getConfigs(void){
 		g.exitOnLostPPS = false;
 	}
 
+	if (isEnabled(NTPCHECK)){
+		g.checkNTP = true;
+	}
+	else if (isDisabled(NTPCHECK)){
+		g.checkNTP = false;
+	}
+
+	sp = getString(NTPSERVER);
+	if (sp != NULL){
+		strcpy(g.ntpServer, sp);
+	}
+	
 	return 0;
 }
 

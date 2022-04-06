@@ -137,7 +137,8 @@
 #define PPSPHASE 2097152
 #define PROCDIR 4194304
 #define SEGREGATE 8388608
-
+#define NTPCHECK 16777216
+#define NTPSERVER 33554432
 
 /*
  * Struct for passing arguments to and from threads
@@ -242,7 +243,10 @@ struct G {
 	bool doSerialsettime;
 	bool serialTimeUpdated;
 	int serialTimeError;							//!< Error reported by GPS serial port.S
-
+	
+	bool checkNTP;									//!< Enable checking NTP at startup
+	char ntpServer[40];								//!< NTP server to use for checking
+	
 	char linuxVersion[20];							//!< Array for recording the Linux version.
 	/**
 	 * @cond FILES
