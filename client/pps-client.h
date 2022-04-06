@@ -59,7 +59,7 @@
 #define INTEGRAL_GAIN 0.63212				//!< Controller integral gain constant in active controller operation
 #define FREQDIFF_INTRVL 5					//!< The number of minutes between Allan deviation samples of system clock frequency correction
 #define PPS_WINDOW 500						//!< WaitForPPS delay loop time window in which to look for a PPS
-#define PTHREAD_STACK_REQUIRED 16384		//!< Stack space requirements for threads
+#define PTHREAD_STACK_REQUIRED 196608		//!< Stack space requirements for threads
 
 #define ZERO_OFFSET_RPI3 7
 #define ZERO_OFFSET_RPI4 4
