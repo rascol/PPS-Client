@@ -246,6 +246,7 @@ struct G {
 	
 	bool checkNTP;									//!< Enable checking NTP at startup
 	char ntpServer[40];								//!< NTP server to use for checking
+	bool ntpChecked;								//!< Flag set when we have done a first NTP adjustment
 	
 	char linuxVersion[20];							//!< Array for recording the Linux version.
 	/**
@@ -414,6 +415,7 @@ public:
 };
 
 int sysCommand(const char *);
+int checkNTP(const char *);
 void initSerialLocalData(void);
 void bufferStatusMsg(const char *);
 int writeStatusStrings(void);

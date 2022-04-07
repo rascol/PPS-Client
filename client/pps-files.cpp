@@ -40,7 +40,7 @@ const char *linuxVersion_file = "/linuxVersion";
 const char *gmtTime_file = "/gmtTime";
 const char *nistTime_file = "/nist_out";
 const char *integral_state_file = "/.pps-last-state";
-const char *home_file = "/Home";
+const char *home_file = "/pps";
 const char *cpuinfo_file = "/cpuinfo";
 
 const char *space = " ";
@@ -200,6 +200,45 @@ int sysCommand(const char *cmd){
 		return -1;
 	}
 	return 0;
+}
+
+int checkNTP(const char *cmd) {
+
+	FILE *fp;
+	char res[1035];
+	char *ret;
+	
+	fp = popen(cmd, "r");
+	
+	if (fp == NULL) {
+		return -1;
+	}
+	
+	while (fgets(res, sizeof(res), fp) != NULL) {
+		
+		printf("%s", res);
+		
+		ret = strstr(res, "no server suitable");
+		if (ret) {
+			printf("Failed to connect to an NTP server!\n");
+			pclose(fp);
+			return -2;
+		}
+
+		ret = strstr(res, "offset");
+		printf("%s\n", ret);
+		if (ret) {
+			pclose(fp);
+			return 0;
+		}
+		
+	}
+	
+	pclose(fp);
+	
+	printf("Unknown result from NTP check\n");
+	return -3;
+  
 }
 
 /**
@@ -1359,7 +1398,9 @@ int getSharedConfigs(void){
 	if (sp != NULL){
 		strcpy(g.ntpServer, sp);
 	}
-		
+	
+	g.ntpChecked = false;
+	
 	return 0;
 }
 
@@ -2580,7 +2621,7 @@ int getRootHome(void){
 
 	int fd = open(f.home_file, O_RDONLY);
 	if (fd == -1){
-		sprintf(g.logbuf, "getRootHome(): Unable to open file %s\n", "./Home");
+		sprintf(g.logbuf, "getRootHome(): Unable to open file %s\n", "./pps");
 		writeToLog(g.logbuf, "getRootHome()");
 		return -1;
 	}

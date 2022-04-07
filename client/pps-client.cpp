@@ -1295,17 +1295,19 @@ void waitForPPS(bool verbose, pps_handle_t *pps_handle, int *pps_mode){
 	writeStatusStrings();
 		
 	if (g.checkNTP) {
-		printf("Startup NTP check enabled, checking %s\n", g.ntpServer);
+		printf("Startup NTP check enabled, using %s\n", g.ntpServer);
 
 		char *cmd = buf;								// Construct a command string:
 
-		sprintf(cmd, "ntpdate %s", g.ntpServer);
+		sprintf(cmd, "ntpdate %s 2>&1", g.ntpServer);
 	
-		printf("Running %s\n", cmd);
-
-		int rv = sysCommand(cmd);						// Issue the command:
-		if (rv == -1){
-			printf("Error running NTP check: %d\n", errno);
+		int rv = checkNTP(cmd);						// Issue the command:
+		if (rv < 0){
+			printf("Error running NTP check: %i\n", rv);
+		}
+		else {
+			printf("NTP adjusted\n");
+			g.ntpChecked = true;
 		}
 	
 	}
@@ -1341,7 +1343,8 @@ void waitForPPS(bool verbose, pps_handle_t *pps_handle, int *pps_mode){
 
 		nanosleep(&ts2, NULL);			// Sleep until ready to look for PPS interrupt
 
-		restart = readPPS_SetTime(verbose, &tcp, pps_handle, pps_mode);		
+		restart = readPPS_SetTime(verbose, &tcp, pps_handle, pps_mode);
+			
 		if (restart == -1){
 			break;
 		}
@@ -1386,9 +1389,23 @@ void waitForPPS(bool verbose, pps_handle_t *pps_handle, int *pps_mode){
 			}
 		}
 
-		//if (verbose){
-		//	printDuration(&tv1, &tst);
-		//}
+		if (g.checkNTP && ! g.ntpChecked) {
+			printf("NTP check not completed, using %s\n", g.ntpServer);
+	
+			char *cmd = buf;								// Construct a command string:
+	
+			sprintf(cmd, "ntpdate %s 2>&1", g.ntpServer);
+		
+			int rv = checkNTP(cmd);						// Issue the command:
+			if (rv < 0){
+				printf("Error running NTP check: %i\n", rv);
+			}
+			else {
+				printf("NTP adjusted\n");
+				g.ntpChecked = true;
+			}
+		
+		}
 
 	}
 		
