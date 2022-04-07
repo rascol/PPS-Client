@@ -24,7 +24,7 @@
 
 extern struct G g;
 
-const char *config_file = "/XXXX/pps-client.conf";								//!< The PPS-Client configuration file.
+const char *config_file = "/etc/pps-client.conf";								//!< The PPS-Client configuration file.
 const char *last_distrib_file = "/pps-error-distrib";							//!< Stores the completed distribution of offset corrections.
 const char *distrib_file = "/pps-error-distrib-forming";						//!< Stores a forming distribution of offset corrections.
 const char *last_jitter_distrib_file = "/pps-jitter-distrib";					//!< Stores the completed distribution of offset corrections.
@@ -40,7 +40,7 @@ const char *linuxVersion_file = "/linuxVersion";
 const char *gmtTime_file = "/gmtTime";
 const char *nistTime_file = "/nist_out";
 const char *integral_state_file = "/.pps-last-state";
-const char *home_file = "/Home";
+const char *home_file = "/pps";
 const char *cpuinfo_file = "/cpuinfo";
 
 const char *space = " ";
@@ -95,7 +95,9 @@ const char *valid_config[] = {
 		"ppsdevice",
 		"ppsphase",
 		"procdir",
-		"segregate"
+		"segregate",
+		"ntpcheck",
+		"ntpServer"
 };
 
 /**
@@ -200,6 +202,45 @@ int sysCommand(const char *cmd){
 	return 0;
 }
 
+int checkNTP(const char *cmd) {
+
+	FILE *fp;
+	char res[1035];
+	char *ret;
+	
+	fp = popen(cmd, "r");
+	
+	if (fp == NULL) {
+		return -1;
+	}
+	
+	while (fgets(res, sizeof(res), fp) != NULL) {
+		
+		printf("%s", res);
+		
+		ret = strstr(res, "no server suitable");
+		if (ret) {
+			printf("Failed to connect to an NTP server!\n");
+			pclose(fp);
+			return -2;
+		}
+
+		ret = strstr(res, "offset");
+		printf("%s\n", ret);
+		if (ret) {
+			pclose(fp);
+			return 0;
+		}
+		
+	}
+	
+	pclose(fp);
+	
+	printf("Unknown result from NTP check\n");
+	return -3;
+  
+}
+
 /**
  * Retrieves the string from the config file assigned
  * to the valid_config string with value key.
@@ -252,7 +293,7 @@ char *getString(int key){
  */
 bool hasString(int key, const char *string){
 	int i = round(log2(key));
-
+	
 	if (g.config_select & key){
 		char *val = strstr(g.configVals[i], string);
 		if (val != NULL){
@@ -1346,6 +1387,20 @@ int getSharedConfigs(void){
 		g.doNISTsettime = false;
 	}
 
+	if (isEnabled(NTPCHECK)){
+		g.checkNTP = true;
+	}
+	else if (isDisabled(NTPCHECK)){
+		g.checkNTP = false;
+	}
+
+	sp = getString(NTPSERVER);
+	if (sp != NULL){
+		strcpy(g.ntpServer, sp);
+	}
+	
+	g.ntpChecked = false;
+	
 	return 0;
 }
 
@@ -1569,6 +1624,18 @@ int getConfigs(void){
 		g.exitOnLostPPS = false;
 	}
 
+	if (isEnabled(NTPCHECK)){
+		g.checkNTP = true;
+	}
+	else if (isDisabled(NTPCHECK)){
+		g.checkNTP = false;
+	}
+
+	sp = getString(NTPSERVER);
+	if (sp != NULL){
+		strcpy(g.ntpServer, sp);
+	}
+	
 	return 0;
 }
 
@@ -2554,7 +2621,7 @@ int getRootHome(void){
 
 	int fd = open(f.home_file, O_RDONLY);
 	if (fd == -1){
-		sprintf(g.logbuf, "getRootHome(): Unable to open file %s\n", "./Home");
+		sprintf(g.logbuf, "getRootHome(): Unable to open file %s\n", "./pps");
 		writeToLog(g.logbuf, "getRootHome()");
 		return -1;
 	}

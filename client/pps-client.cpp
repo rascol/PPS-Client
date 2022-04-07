@@ -50,7 +50,7 @@ extern int adjtimex (struct timex *timex);
  */
 //extern int gettimeofday(struct timeval *tv, struct timezone *tz);
 
-const char *version = "2.0.4";							//!< Program v2.0.3 updated on 11 Jan 2021
+const char *version = "2.0.5";							//!< Program v2.0.3 updated on 11 Jan 2021
 
 struct G g;												//!< Declares the global variables defined in pps-client.h.
 
@@ -1013,7 +1013,7 @@ int makeTimeCorrection(struct timeval pps_t){
 
 	g.isControlling = getAcquireState();				// Provides enough time to reduce time slew on startup.
 	if (g.isControlling){
-
+				
 		g.avgCorrection = getMovingAverage(g.timeCorrection);
 
 		makeAverageIntegral(g.avgCorrection);			// Constructs an average of integrals of one
@@ -1090,7 +1090,7 @@ int checkPPSInterrupt(void){
  * @returns The length of time to sleep in seconds and nanoseconds.
  */
 struct timespec setSyncDelay(int timeAt, int fracSec){
-
+	
 	struct timespec ts2;
 
 	int timerVal = USECS_PER_SEC - fracSec + timeAt;
@@ -1139,7 +1139,7 @@ struct timespec setSyncDelay(int timeAt, int fracSec){
  */
 int readPPS_SetTime(bool verbose, timeCheckParams *tcp, pps_handle_t *pps_handle, int *pps_mode){
 	int restart = 0;
-
+	
 	int rv = readPPSTimestamp(pps_handle, pps_mode, g.tm);
 
 	detectMissedPPS();
@@ -1260,6 +1260,7 @@ void waitForPPS(bool verbose, pps_handle_t *pps_handle, int *pps_mode){
 	int rv;
 	timeCheckParams tcp;
 	int restart = 0;
+	char buf[500];
 
 	if (g.doNISTsettime){
 		rv = allocInitializeNISTThreads(&tcp);
@@ -1292,7 +1293,25 @@ void waitForPPS(bool verbose, pps_handle_t *pps_handle, int *pps_mode){
 	timePPS = -PPS_WINDOW;		    	// continuously re-timing to before the roll-over of the second.
 										// timePPS allows for a time window in which to look for the PPS
 	writeStatusStrings();
+		
+	if (g.checkNTP) {
+		printf("Startup NTP check enabled, using %s\n", g.ntpServer);
 
+		char *cmd = buf;								// Construct a command string:
+
+		sprintf(cmd, "ntpdate %s 2>&1", g.ntpServer);
+	
+		int rv = checkNTP(cmd);						// Issue the command:
+		if (rv < 0){
+			printf("Error running NTP check: %i\n", rv);
+		}
+		else {
+			printf("NTP adjusted\n");
+			g.ntpChecked = true;
+		}
+	
+	}
+	
 	for (;;){							// Look for the PPS time returned by the PPS driver
 
 		if (readState == false){
@@ -1325,6 +1344,7 @@ void waitForPPS(bool verbose, pps_handle_t *pps_handle, int *pps_mode){
 		nanosleep(&ts2, NULL);			// Sleep until ready to look for PPS interrupt
 
 		restart = readPPS_SetTime(verbose, &tcp, pps_handle, pps_mode);
+			
 		if (restart == -1){
 			break;
 		}
@@ -1369,11 +1389,26 @@ void waitForPPS(bool verbose, pps_handle_t *pps_handle, int *pps_mode){
 			}
 		}
 
-//		if (verbose){
-//			printDuration(&tv1, &tst);
-//		}
-	}
+		if (g.checkNTP && ! g.ntpChecked) {
+			printf("NTP check not completed, using %s\n", g.ntpServer);
+	
+			char *cmd = buf;								// Construct a command string:
+	
+			sprintf(cmd, "ntpdate %s 2>&1", g.ntpServer);
+		
+			int rv = checkNTP(cmd);						// Issue the command:
+			if (rv < 0){
+				printf("Error running NTP check: %i\n", rv);
+			}
+			else {
+				printf("NTP adjusted\n");
+				g.ntpChecked = true;
+			}
+		
+		}
 
+	}
+		
 	saveLastState();
 
 end:
@@ -1415,7 +1450,9 @@ int main(int argc, char *argv[])
 	int rv = 0;
 	int ppid;
 	bool verbose = false;
-
+	
+	setlinebuf(stdout);
+	
 	if (argc > 1){
 		if (strcmp(argv[1], "-v") == 0){
 			verbose = true;
